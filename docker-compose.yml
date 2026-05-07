@@ -1,0 +1,25 @@
+services:
+  openclaw:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: uropclaw-gateway
+    restart: on-failure:5
+    env_file:
+      - .env
+    environment:
+      HOME: /data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    ports:
+      - "18795:18789"
+    volumes:
+      - ./openclaw-home:/data/.openclaw
+      - ./workspaces/uropclaw1:/workspaces/uropclaw1
+      - ./workspaces/uropclaw2:/workspaces/uropclaw2
+      - ./workspaces/uropclaw3:/workspaces/uropclaw3
+      - ./workspaces/uropclaw4:/workspaces/uropclaw4
+    command: ["/app/entrypoint.sh"]

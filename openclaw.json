@@ -1,0 +1,203 @@
+{
+  "auth": {
+    "profiles": {
+      "openai-codex:default": {
+        "provider": "openai-codex",
+        "mode": "oauth"
+      }
+    }
+  },
+  "gateway": {
+    "mode": "local"
+  },
+  "agents": {
+    "defaults": {
+      "thinkingDefault": "off",
+      "model": {
+        "primary": "openai-codex/gpt-5.4"
+      },
+      "models": {
+        "openai-codex/gpt-5.4": {
+          "alias": "codex",
+          "params": {
+            "maxTokens": 256
+          }
+        }
+      },
+      "compaction": {
+        "mode": "safeguard"
+      }
+    },
+    "list": [
+      {
+        "id": "uropclaw1",
+        "default": true,
+        "workspace": "/workspaces/uropclaw1"
+      },
+      {
+        "id": "uropclaw2",
+        "workspace": "/workspaces/uropclaw2"
+      },
+      {
+        "id": "uropclaw3",
+        "workspace": "/workspaces/uropclaw3"
+      },
+      {
+        "id": "uropclaw4",
+        "workspace": "/workspaces/uropclaw4"
+      }
+    ]
+  },
+  "session": {
+    "dmScope": "per-account-channel-peer"
+  },
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "groupPolicy": "allowlist",
+      "allowBots": "mentions",
+      "streaming": "off",
+      "defaultAccount": "uropclaw1",
+      "guilds": {
+        "1482960551863914577": {
+          "requireMention": true,
+          "channels": {
+            "1486200512096505856": {
+              "allow": true,
+              "requireMention": true
+            }
+          }
+        }
+      },
+      "accounts": {
+        "uropclaw1": {
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "DISCORD_BOT_TOKEN_UROPCLAW1"
+          },
+          "groupPolicy": "allowlist",
+          "streaming": "off"
+        },
+        "uropclaw2": {
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "DISCORD_BOT_TOKEN_UROPCLAW2"
+          },
+          "groupPolicy": "allowlist",
+          "streaming": "off"
+        },
+        "uropclaw3": {
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "DISCORD_BOT_TOKEN_UROPCLAW3"
+          },
+          "groupPolicy": "allowlist",
+          "streaming": "off"
+        },
+        "uropclaw4": {
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "DISCORD_BOT_TOKEN_UROPCLAW4"
+          },
+          "groupPolicy": "allowlist",
+          "streaming": "off"
+        }
+      }
+    }
+  },
+  "bindings": [
+    {
+      "agentId": "uropclaw1",
+      "match": {
+        "channel": "discord",
+        "accountId": "uropclaw1",
+        "peer": {
+          "kind": "channel",
+          "id": "1486200512096505856"
+        }
+      }
+    },
+    {
+      "agentId": "uropclaw2",
+      "match": {
+        "channel": "discord",
+        "accountId": "uropclaw2",
+        "peer": {
+          "kind": "channel",
+          "id": "1486200512096505856"
+        }
+      }
+    },
+    {
+      "agentId": "uropclaw3",
+      "match": {
+        "channel": "discord",
+        "accountId": "uropclaw3",
+        "peer": {
+          "kind": "channel",
+          "id": "1486200512096505856"
+        }
+      }
+    },
+    {
+      "agentId": "uropclaw4",
+      "match": {
+        "channel": "discord",
+        "accountId": "uropclaw4",
+        "peer": {
+          "kind": "channel",
+          "id": "1486200512096505856"
+        }
+      }
+    },
+    {
+      "agentId": "uropclaw1",
+      "match": {
+        "channel": "discord",
+        "accountId": "uropclaw1"
+      }
+    },
+    {
+      "agentId": "uropclaw2",
+      "match": {
+        "channel": "discord",
+        "accountId": "uropclaw2"
+      }
+    },
+    {
+      "agentId": "uropclaw3",
+      "match": {
+        "channel": "discord",
+        "accountId": "uropclaw3"
+      }
+    },
+    {
+      "agentId": "uropclaw4",
+      "match": {
+        "channel": "discord",
+        "accountId": "uropclaw4"
+      }
+    }
+  ],
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "tools": {
+    "agentToAgent": {
+      "enabled": true,
+      "allow": [
+        "*"
+      ]
+    },
+    "sessions": {
+      "visibility": "all"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+# NOTE: carla package must be installed separately from your CARLA installation:
+# pip install /path/to/CARLA/PythonAPI/carla/dist/carla-*.whl
+carla>=0.9.14
+pydantic>=2.0
+fastapi>=0.110.0
+uvicorn>=0.29.0
+ultralytics>=8.0.0
+opencv-python>=4.8.0
