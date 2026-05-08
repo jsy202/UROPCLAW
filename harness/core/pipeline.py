@@ -34,6 +34,17 @@ OPENCLAW_TIMEOUT_S = 30.0
 OPENCLAW_POLL_INTERVAL_S = 0.5
 MAX_CROPS_PER_AGENT = 50
 
+_DELIVERY_QUEUE = Path(__file__).parent.parent / "openclaw-home" / "delivery-queue"
+_FALLBACK_CHANNEL = "1488727410672140398"
+
+_COLOR_KO = {
+    "blue": "파란색", "red": "빨간색", "white": "흰색", "black": "검은색",
+    "green": "초록색", "yellow": "노란색", "gray_silver": "회색/은색", "orange": "주황색",
+}
+_CLASS_KO = {
+    "car": "승용차", "truck": "트럭", "bus": "버스", "motorcycle": "오토바이",
+}
+
 
 def _trim_crops(crops_dir: Path, max_files: int = MAX_CROPS_PER_AGENT) -> None:
     files = sorted(crops_dir.glob("*.jpg"), key=lambda f: f.stat().st_mtime)
@@ -473,6 +484,56 @@ class AlertWorker(threading.Thread):
         event_path = state_dir / "detection_event.json"
         event_path.write_text(json.dumps(event, indent=2), encoding="utf-8")
         log.info(f"[{agent_id}] detection event written: track={track_id} color={color}")
+        self._enqueue_discord_alert(agent_id, event)
+
+    def _enqueue_discord_alert(self, agent_id: str, event: dict) -> None:
+        try:
+            mission = read_mission()
+            channel_id = (mission or {}).get("discord_channel_id", _FALLBACK_CHANNEL)
+
+            color_ko = _COLOR_KO.get(event["color"], event["color"])
+            class_ko = _CLASS_KO.get(event["yolo_class"], event["yolo_class"])
+            conf_pct = round(event["yolo_confidence"] * 100)
+            score_pct = round(event["color_score"] * 100)
+            ts = datetime.fromtimestamp(event["timestamp"]).strftime("%H:%M:%S")
+            zone = agent_id.replace("uropclaw", "구역")
+
+            text = (
+                f"🚨 [{zone} 카메라] 차량 포착\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"색상: {color_ko}\n"
+                f"차종: {class_ko}\n"
+                f"신뢰도: {conf_pct}%\n"
+                f"색상 일치도: {score_pct}%\n"
+                f"포착 시각: {ts}\n"
+                f"━━━━━━━━━━━━━━━━━━━━"
+            )
+
+            item_id = str(uuid.uuid4())
+            payload = {
+                "id": item_id,
+                "enqueuedAt": int(time.time() * 1000),
+                "channel": "discord",
+                "to": f"channel:{channel_id}",
+                "payloads": [{"text": text}],
+                "threadId": None,
+                "mirror": {
+                    "sessionKey": f"agent:{agent_id}:discord:channel:{channel_id}",
+                    "agentId": agent_id,
+                    "text": text,
+                    "idempotencyKey": item_id,
+                },
+                "retryCount": 0,
+                "lastAttemptAt": None,
+                "lastError": None,
+            }
+
+            _DELIVERY_QUEUE.mkdir(parents=True, exist_ok=True)
+            item_path = _DELIVERY_QUEUE / f"{item_id}.json"
+            item_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            log.info(f"[{agent_id}] Discord alert enqueued → channel:{channel_id}")
+        except Exception as e:
+            log.warning(f"[{agent_id}] Failed to enqueue Discord alert: {e}")
 
 
 # ── Thread-5: Metrics Writer ──────────────────────────────────────────────────
