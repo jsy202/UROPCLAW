@@ -39,12 +39,25 @@ MAX_CROPS_PER_AGENT = 50
 
 _FALLBACK_CHANNEL = "1488727410672140398"
 _DISCORD_API = "https://discord.com/api/v10/channels/{channel_id}/messages"
-_BOT_TOKENS: dict[str, str] = {
-    "uropclaw1": os.getenv("DISCORD_BOT_TOKEN_UROPCLAW1", os.getenv("DISCORD_BOT_TOKEN", "")),
-    "uropclaw2": os.getenv("DISCORD_BOT_TOKEN_UROPCLAW2", os.getenv("DISCORD_BOT_TOKEN", "")),
-    "uropclaw3": os.getenv("DISCORD_BOT_TOKEN_UROPCLAW3", os.getenv("DISCORD_BOT_TOKEN", "")),
-    "uropclaw4": os.getenv("DISCORD_BOT_TOKEN_UROPCLAW4", os.getenv("DISCORD_BOT_TOKEN", "")),
-}
+
+def _load_env_tokens() -> dict[str, str]:
+    env_file = Path(__file__).parent.parent.parent / ".env"
+    raw: dict[str, str] = {}
+    if env_file.exists():
+        for line in env_file.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, _, v = line.partition("=")
+                raw[k.strip()] = v.strip()
+    default = raw.get("DISCORD_BOT_TOKEN", os.getenv("DISCORD_BOT_TOKEN", ""))
+    return {
+        "uropclaw1": raw.get("DISCORD_BOT_TOKEN_UROPCLAW1", default),
+        "uropclaw2": raw.get("DISCORD_BOT_TOKEN_UROPCLAW2", default),
+        "uropclaw3": raw.get("DISCORD_BOT_TOKEN_UROPCLAW3", default),
+        "uropclaw4": raw.get("DISCORD_BOT_TOKEN_UROPCLAW4", default),
+    }
+
+_BOT_TOKENS: dict[str, str] = _load_env_tokens()
 
 _COLOR_KO = {
     "blue": "파란색", "red": "빨간색", "white": "흰색", "black": "검은색",
