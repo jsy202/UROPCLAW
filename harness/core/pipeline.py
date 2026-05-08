@@ -172,6 +172,7 @@ class YoloWorker(threading.Thread):
                         "yolo_class": "car",
                         "yolo_confidence": 0.0,
                         "class_id": -1,
+                        "location": item.get("location"),
                     })
                 self._metrics["frames_processed"] = self._frame_count
                 continue
@@ -204,6 +205,7 @@ class YoloWorker(threading.Thread):
                             "yolo_class": det.class_name,
                             "yolo_confidence": det.confidence,
                             "class_id": -1,
+                            "location": item.get("location"),
                         })
                     continue
 
@@ -262,6 +264,7 @@ class YoloWorker(threading.Thread):
                         "yolo_confidence": matched_det.confidence if matched_det else 0.0,
                         "class_id": track.class_id,
                         "dedup_enabled": use_dedup,
+                        "location": item.get("location"),
                     })
 
             except Exception as e:
@@ -272,6 +275,24 @@ def _dominant_ratio(history: list[str], color: str) -> float:
     if not history:
         return 0.0
     return history.count(color) / len(history)
+
+
+def _crop_padded(frame: np.ndarray, bbox: list[int], pad_ratio: float = 0.35, min_px: int = 160) -> np.ndarray:
+    """Crop bbox with padding and upscale if result is too small."""
+    x1, y1, x2, y2 = bbox
+    h, w = frame.shape[:2]
+    pw = max(15, int((x2 - x1) * pad_ratio))
+    ph = max(15, int((y2 - y1) * pad_ratio))
+    cx1, cy1 = max(0, x1 - pw), max(0, y1 - ph)
+    cx2, cy2 = min(w, x2 + pw), min(h, y2 + ph)
+    crop = frame[cy1:cy2, cx1:cx2]
+    if crop.size == 0:
+        return crop
+    ch, cw = crop.shape[:2]
+    if ch < min_px or cw < min_px:
+        scale = max(min_px / ch, min_px / cw)
+        crop = cv2.resize(crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR)
+    return crop
 
 
 # ── Thread-3: OpenClaw Worker (Phase 3 실연동) ────────────────────────────────
@@ -353,10 +374,8 @@ class OpenClawWorker(threading.Thread):
             crops_dir.mkdir(parents=True, exist_ok=True)
             crop_filename = f"vreq_{request_id[:8]}.jpg"
             crop_path_obj = crops_dir / crop_filename
-            x1, y1, x2, y2 = bbox
-            crop = frame[max(0, y1):y2, max(0, x1):x2]
+            crop = _crop_padded(frame, bbox)
             if crop.size > 0:
-                import cv2
                 cv2.imwrite(str(crop_path_obj), crop)
                 crop_path = str(crop_path_obj)
                 _trim_crops(crops_dir)
@@ -479,8 +498,7 @@ class AlertWorker(threading.Thread):
         crop_filename = f"evt_{event_id[:8]}.jpg"
         crop_path = crops_dir / crop_filename
 
-        x1, y1, x2, y2 = bbox
-        crop = frame[max(0, y1):y2, max(0, x1):x2]
+        crop = _crop_padded(frame, bbox)
         if crop.size > 0:
             cv2.imwrite(str(crop_path), crop)
             _trim_crops(crops_dir)
