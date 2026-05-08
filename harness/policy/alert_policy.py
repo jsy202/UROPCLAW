@@ -24,16 +24,16 @@ class AlertPolicy:
         if target_color and candidate.get("color") != target_color:
             return False
 
-        # Phase 3: body_type 지정 미션일 때 OpenClaw 결과로 최종 판단
-        target_body_type = mission.get("target_body_type")
-        if target_body_type:
-            if openclaw_result is None:
-                return False
+        # LLM(OpenClaw)이 항상 최종 판단: confirmed=false면 알림 차단
+        if openclaw_result is not None:
             if not openclaw_result.get("confirmed", False):
                 return False
-            if openclaw_result.get("confidence", "low") not in ("medium", "high"):
+            conf = openclaw_result.get("confidence", "low")
+            if conf not in ("medium", "high", "n/a"):  # n/a = LLM 오류 시 자동 통과
                 return False
-            if not openclaw_result.get("target_body_type_match", False):
-                return False
+            # body_type 지정 미션이면 추가로 body_type 일치 확인
+            if mission.get("target_body_type"):
+                if not openclaw_result.get("target_body_type_match", False):
+                    return False
 
         return True

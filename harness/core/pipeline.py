@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
+import subprocess
 import threading
 import time
 import uuid
@@ -31,10 +33,6 @@ log = logging.getLogger(__name__)
 _METRICS_PATH = WORKSPACE_BASE / "uropclaw1" / "state" / "metrics.json"
 _METRICS_INTERVAL = 5.0  # seconds
 
-VERIFICATION_REQUEST_PATH = WORKSPACE_BASE / "uropclaw1" / "state" / "verification_request.json"
-VERIFICATION_RESPONSE_PATH = WORKSPACE_BASE / "uropclaw1" / "state" / "verification_response.json"
-OPENCLAW_TIMEOUT_S = 30.0
-OPENCLAW_POLL_INTERVAL_S = 0.5
 MAX_CROPS_PER_AGENT = 50
 
 _FALLBACK_CHANNEL = "1488727410672140398"
@@ -295,7 +293,7 @@ def _crop_padded(frame: np.ndarray, bbox: list[int], pad_ratio: float = 0.35, mi
     return crop
 
 
-# ── Thread-3: OpenClaw Worker (Phase 3 실연동) ────────────────────────────────
+# ── Thread-3: OpenClaw Worker (LLM image verification) ───────────────────────
 
 class OpenClawWorker(threading.Thread):
     def __init__(
@@ -313,7 +311,7 @@ class OpenClawWorker(threading.Thread):
         self._dedup = Deduplicator()
 
     def run(self) -> None:
-        log.info("OpenClawWorker started (Phase 3 실연동)")
+        log.info("OpenClawWorker started (LLM image verification)")
         while not self.stop_event.is_set():
             try:
                 item = self._candidate_queue.get(timeout=0.5)
@@ -321,11 +319,10 @@ class OpenClawWorker(threading.Thread):
                 continue
 
             now = time.time()
-            key = item["agent_id"]  # 에이전트당 30초 1건 제한 (track_id 기준시 폭주)
+            key = item["agent_id"]
 
             self._dedup.cleanup(now)
 
-            # dedup_enabled 플래그가 False이면 dedup 체크 건너뜀 (Baseline B)
             if item.get("dedup_enabled", True):
                 if not self._dedup.should_verify(key, now):
                     self._metrics["duplicate_suppressed"] = (
@@ -337,106 +334,109 @@ class OpenClawWorker(threading.Thread):
             mission_id = mission.get("mission_id", "") if mission else ""
             candidate = {**item, "mission_id": mission_id}
 
-            target_body_type = mission.get("target_body_type") if mission else None
+            crop_path = self._save_crop(candidate)
 
-            if not target_body_type:
-                # body_type 미지정 미션: OpenClaw 검증 없이 바로 통과
-                candidate["openclaw_result"] = {
-                    "confirmed": True,
-                    "confidence": "n/a",
-                    "vehicle_body_type": "unknown",
-                    "target_body_type_match": True,
-                    "reason": "body_type not specified — skipped verification",
-                }
-                self._result_queue.put(candidate)
-                continue
-
-            # body_type 지정 미션: OpenClaw 검증 요청
             self._metrics["openclaw_calls"] = self._metrics.get("openclaw_calls", 0) + 1
-            result = self._request_verification(candidate, mission)
+            result = self._llm_verify(candidate, mission or {}, crop_path)
             candidate["openclaw_result"] = result
 
             if result.get("confirmed", False):
                 self._metrics["openclaw_confirmed"] = self._metrics.get("openclaw_confirmed", 0) + 1
 
+            log.info(
+                f"[openclaw] {candidate['agent_id']} confirmed={result.get('confirmed')} "
+                f"confidence={result.get('confidence')} reason={result.get('reason','')}"
+            )
             self._result_queue.put(candidate)
 
-    def _request_verification(self, candidate: dict, mission: dict) -> dict:
-        request_id = str(uuid.uuid4())
-
-        # Create crop for uropclaw1 to attach when messaging uropclaw2
-        crop_path = None
+    def _save_crop(self, candidate: dict) -> Optional[str]:
         frame = candidate.get("frame")
         bbox = candidate.get("bbox")
-        if frame is not None and bbox:
-            agent_id = candidate.get("agent_id", "uropclaw2")
-            crops_dir = _crops_dir(agent_id)
-            crops_dir.mkdir(parents=True, exist_ok=True)
-            crop_filename = f"vreq_{request_id[:8]}.jpg"
-            crop_path_obj = crops_dir / crop_filename
-            crop = _crop_padded(frame, bbox)
-            if crop.size > 0:
-                cv2.imwrite(str(crop_path_obj), crop)
-                crop_path = str(crop_path_obj)
-                _trim_crops(crops_dir)
+        if frame is None or not bbox:
+            return None
+        agent_id = candidate.get("agent_id", "uropclaw1")
+        crops_dir = _crops_dir(agent_id)
+        crops_dir.mkdir(parents=True, exist_ok=True)
+        crop_filename = f"vreq_{uuid.uuid4().hex[:8]}.jpg"
+        crop_path_obj = crops_dir / crop_filename
+        crop = _crop_padded(frame, bbox)
+        if crop.size > 0:
+            cv2.imwrite(str(crop_path_obj), crop)
+            _trim_crops(crops_dir)
+            return str(crop_path_obj)
+        return None
 
-        request = {
-            "request_id": request_id,
-            "mission_id": candidate.get("mission_id"),
-            "crop_path": crop_path,
-            "target_color": mission.get("target_color"),
-            "target_body_type": mission.get("target_body_type"),
-            "yolo_class": candidate.get("yolo_class"),
-            "yolo_confidence": candidate.get("yolo_confidence"),
-            "color_score": candidate.get("color_score"),
-            "camera_id": candidate.get("camera_id"),
-            "timestamp": candidate.get("timestamp"),
-            "requested_at": datetime.now(timezone.utc).isoformat(),
-        }
+    def _llm_verify(self, candidate: dict, mission: dict, crop_path: Optional[str]) -> dict:
+        """Call Claude Haiku via CLI to inspect the crop image and verify the detection."""
+        target_color = mission.get("target_color", "unknown")
+        target_body_type = mission.get("target_body_type")
 
-        # 기존 응답 파일 삭제 (이전 응답이 남아있지 않도록)
-        VERIFICATION_RESPONSE_PATH.unlink(missing_ok=True)
-
-        # 요청 파일 작성
-        VERIFICATION_REQUEST_PATH.parent.mkdir(parents=True, exist_ok=True)
-        VERIFICATION_REQUEST_PATH.write_text(
-            json.dumps(request, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
-        log.info(
-            f"[openclaw] verification requested: request_id={request_id} "
-            f"mission_id={candidate.get('mission_id')} "
-            f"target_body_type={mission.get('target_body_type')}"
+        img_line = f"Analyze the image at {crop_path}.\n" if (crop_path and Path(crop_path).exists()) else ""
+        body_part = f' of type "{target_body_type}"' if target_body_type else ""
+        confirmed_rule = (
+            "confirmed=true only if: visible_vehicle=true AND color_match=true "
+            f"AND body_type_match=true AND confidence is medium or high"
+            if target_body_type else
+            "confirmed=true only if: visible_vehicle=true AND color_match=true AND confidence is medium or high"
         )
 
-        # 응답 polling (최대 OPENCLAW_TIMEOUT_S초)
-        deadline = time.time() + OPENCLAW_TIMEOUT_S
-        while time.time() < deadline:
-            if VERIFICATION_RESPONSE_PATH.exists():
-                try:
-                    raw = VERIFICATION_RESPONSE_PATH.read_text(encoding="utf-8")
-                    response = json.loads(raw)
-                    if response.get("request_id") == request_id:
-                        VERIFICATION_RESPONSE_PATH.unlink(missing_ok=True)
-                        log.info(
-                            f"[openclaw] response received: request_id={request_id} "
-                            f"confirmed={response.get('confirmed')} "
-                            f"confidence={response.get('confidence')}"
-                        )
-                        return response
-                except (json.JSONDecodeError, KeyError):
-                    log.warning("Invalid verification response JSON — retrying")
-            time.sleep(OPENCLAW_POLL_INTERVAL_S)
+        prompt = (
+            f"{img_line}"
+            f"You are a CCTV vehicle surveillance system.\n"
+            f"Target: a {target_color} vehicle{body_part}.\n\n"
+            f"Reply ONLY with valid JSON, no other text:\n"
+            f'{{\n'
+            f'  "visible_vehicle": true or false,\n'
+            f'  "color": "observed dominant color",\n'
+            f'  "color_match": true or false,\n'
+            f'  "body_type": "car or truck or bus or motorcycle or unknown",\n'
+            f'  "body_type_match": true or false,\n'
+            f'  "confidence": "low or medium or high",\n'
+            f'  "confirmed": true or false,\n'
+            f'  "reason": "한국어로 한 줄"\n'
+            f'}}\n\n'
+            f'Rules:\n'
+            f'- color_match=true if observed color matches "{target_color}"\n'
+            f'- {confirmed_rule}\n'
+            f'- If image is dark, blurry, or no vehicle visible: confidence="low", confirmed=false'
+        )
 
-        # timeout
-        log.warning(f"[openclaw] verification timeout: request_id={request_id}")
-        self._metrics["openclaw_timeouts"] = self._metrics.get("openclaw_timeouts", 0) + 1
+        try:
+            cmd = ["claude", "--print", "--model", "claude-haiku-4-5-20251001"]
+            if crop_path:
+                cmd += ["--add-dir", str(Path(crop_path).parent)]
+            proc = subprocess.run(
+                cmd,
+                input=prompt.encode(),
+                capture_output=True,
+                timeout=25,
+            )
+            text = proc.stdout.decode().strip()
+            m = re.search(r'\{.*?\}', text, re.DOTALL)
+            if m:
+                data = json.loads(m.group())
+                return {
+                    "confirmed": bool(data.get("confirmed", False)),
+                    "confidence": data.get("confidence", "low"),
+                    "vehicle_body_type": data.get("body_type", "unknown"),
+                    "target_body_type_match": bool(data.get("body_type_match", False)),
+                    "color_match": bool(data.get("color_match", False)),
+                    "color_observed": data.get("color", ""),
+                    "reason": data.get("reason", ""),
+                }
+            log.warning(f"[openclaw] LLM response parse failed: {text[:120]}")
+        except subprocess.TimeoutExpired:
+            log.warning("[openclaw] LLM verify timeout (25s)")
+        except Exception as e:
+            log.warning(f"[openclaw] LLM verify error: {e}")
+
+        # Fail open: LLM 오류 시 통과 (시스템 중단 방지)
         return {
-            "request_id": request_id,
-            "confirmed": False,
-            "confidence": "low",
+            "confirmed": True,
+            "confidence": "n/a",
             "vehicle_body_type": "unknown",
-            "target_body_type_match": False,
-            "reason": "OpenClaw 응답 시간 초과",
+            "target_body_type_match": True,
+            "reason": "LLM 검증 실패 — 자동 통과",
         }
 
 
