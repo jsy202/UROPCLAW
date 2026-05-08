@@ -34,7 +34,7 @@ OPENCLAW_TIMEOUT_S = 30.0
 OPENCLAW_POLL_INTERVAL_S = 0.5
 MAX_CROPS_PER_AGENT = 50
 
-_DELIVERY_QUEUE = Path(__file__).parent.parent / "openclaw-home" / "delivery-queue"
+_DELIVERY_QUEUE = Path(__file__).parent.parent.parent / "openclaw-home" / "delivery-queue"
 _FALLBACK_CHANNEL = "1488727410672140398"
 
 _COLOR_KO = {
