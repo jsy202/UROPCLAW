@@ -81,11 +81,13 @@ class CameraManager:
         if self._frame_queue is not None:
             camera_id = f"{agent_id}_{mount}"
             try:
+                loc = image.transform.location
                 self._frame_queue.put_nowait({
                     "camera_id": camera_id,
                     "agent_id": agent_id,
                     "frame": arr,
                     "timestamp": time.time(),
+                    "location": {"x": round(loc.x, 1), "y": round(loc.y, 1), "z": round(loc.z, 1)},
                 })
             except Exception:
                 pass  # Drop if full

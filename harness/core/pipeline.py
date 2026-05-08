@@ -496,6 +496,7 @@ class AlertWorker(threading.Thread):
             "yolo_class": yolo_class,
             "yolo_confidence": round(yolo_confidence, 4),
             "bbox": bbox,
+            "location": item.get("location"),
             "mission_id": mission_id,
             "crop_path": str(crop_path),
             "openclaw_result": item.get("openclaw_result"),
@@ -524,6 +525,9 @@ class AlertWorker(threading.Thread):
             ts = datetime.fromtimestamp(event["timestamp"]).strftime("%H:%M:%S")
             zone = agent_id.replace("uropclaw", "구역")
 
+            loc = event.get("location")
+            loc_str = f"x={loc['x']}, y={loc['y']}" if loc else "알 수 없음"
+
             text = (
                 f"🚨 [{zone} 카메라] 차량 포착\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
@@ -531,6 +535,7 @@ class AlertWorker(threading.Thread):
                 f"차종: {class_ko}\n"
                 f"신뢰도: {conf_pct}%\n"
                 f"색상 일치도: {score_pct}%\n"
+                f"위치: {loc_str}\n"
                 f"포착 시각: {ts}\n"
                 f"━━━━━━━━━━━━━━━━━━━━"
             )
