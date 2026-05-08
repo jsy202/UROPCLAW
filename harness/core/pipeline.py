@@ -151,6 +151,11 @@ class YoloWorker(threading.Thread):
             frame: np.ndarray = item["frame"]
             timestamp: float = item.get("timestamp", time.time())
 
+            # 2초 이상 된 프레임은 버림 (큐 적체 시 오래된 이미지 방지)
+            if time.time() - timestamp > 2.0:
+                self._metrics["frames_dropped"] += 1
+                continue
+
             if not is_active():
                 continue
 
@@ -158,20 +163,23 @@ class YoloWorker(threading.Thread):
             if mode == BaselineMode.A:
                 if self._frame_count % BASELINE_N == 0:
                     self._metrics["candidates_raised"] += 1
-                    self._candidate_queue.put({
-                        "camera_id": camera_id,
-                        "agent_id": agent_id,
-                        "track_id": -1,
-                        "color": "unknown",
-                        "color_score": 0.0,
-                        "bbox": [0, 0, 0, 0],
-                        "frame": frame,
-                        "timestamp": timestamp,
-                        "yolo_class": "car",
-                        "yolo_confidence": 0.0,
-                        "class_id": -1,
-                        "location": item.get("location"),
-                    })
+                    try:
+                        self._candidate_queue.put_nowait({
+                            "camera_id": camera_id,
+                            "agent_id": agent_id,
+                            "track_id": -1,
+                            "color": "unknown",
+                            "color_score": 0.0,
+                            "bbox": [0, 0, 0, 0],
+                            "frame": frame,
+                            "timestamp": timestamp,
+                            "yolo_class": "car",
+                            "yolo_confidence": 0.0,
+                            "class_id": -1,
+                            "location": item.get("location"),
+                        })
+                    except Exception:
+                        self._metrics["frames_dropped"] += 1
                 self._metrics["frames_processed"] = self._frame_count
                 continue
 
@@ -191,20 +199,23 @@ class YoloWorker(threading.Thread):
                 if mode == BaselineMode.B:
                     for det in detections:
                         self._metrics["candidates_raised"] += 1
-                        self._candidate_queue.put({
-                            "camera_id": camera_id,
-                            "agent_id": agent_id,
-                            "track_id": -1,
-                            "color": "unknown",
-                            "color_score": 0.0,
-                            "bbox": det.bbox,
-                            "frame": frame,
-                            "timestamp": timestamp,
-                            "yolo_class": det.class_name,
-                            "yolo_confidence": det.confidence,
-                            "class_id": -1,
-                            "location": item.get("location"),
-                        })
+                        try:
+                            self._candidate_queue.put_nowait({
+                                "camera_id": camera_id,
+                                "agent_id": agent_id,
+                                "track_id": -1,
+                                "color": "unknown",
+                                "color_score": 0.0,
+                                "bbox": det.bbox,
+                                "frame": frame,
+                                "timestamp": timestamp,
+                                "yolo_class": det.class_name,
+                                "yolo_confidence": det.confidence,
+                                "class_id": -1,
+                                "location": item.get("location"),
+                            })
+                        except Exception:
+                            self._metrics["frames_dropped"] += 1
                     continue
 
                 # Baseline C / Proposed: color filter 적용
@@ -249,21 +260,24 @@ class YoloWorker(threading.Thread):
                             break
 
                     self._metrics["candidates_raised"] += 1
-                    self._candidate_queue.put({
-                        "camera_id": camera_id,
-                        "agent_id": agent_id,
-                        "track_id": tid,
-                        "color": confirmed_color,
-                        "color_score": _dominant_ratio(track.color_history, confirmed_color),
-                        "bbox": track.bbox,
-                        "frame": frame,
-                        "timestamp": timestamp,
-                        "yolo_class": matched_det.class_name if matched_det else "car",
-                        "yolo_confidence": matched_det.confidence if matched_det else 0.0,
-                        "class_id": track.class_id,
-                        "dedup_enabled": use_dedup,
-                        "location": item.get("location"),
-                    })
+                    try:
+                        self._candidate_queue.put_nowait({
+                            "camera_id": camera_id,
+                            "agent_id": agent_id,
+                            "track_id": tid,
+                            "color": confirmed_color,
+                            "color_score": _dominant_ratio(track.color_history, confirmed_color),
+                            "bbox": track.bbox,
+                            "frame": frame,
+                            "timestamp": timestamp,
+                            "yolo_class": matched_det.class_name if matched_det else "car",
+                            "yolo_confidence": matched_det.confidence if matched_det else 0.0,
+                            "class_id": track.class_id,
+                            "dedup_enabled": use_dedup,
+                            "location": item.get("location"),
+                        })
+                    except Exception:
+                        self._metrics["frames_dropped"] += 1
 
             except Exception as e:
                 log.error(f"YoloWorker error: {e}", exc_info=True)
