@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import threading
 import time
 import uuid
@@ -9,6 +10,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from queue import Empty, Queue
 from typing import Optional
+
+import requests
 
 import cv2
 import numpy as np
@@ -34,8 +37,14 @@ OPENCLAW_TIMEOUT_S = 30.0
 OPENCLAW_POLL_INTERVAL_S = 0.5
 MAX_CROPS_PER_AGENT = 50
 
-_DELIVERY_QUEUE = Path(__file__).parent.parent.parent / "openclaw-home" / "delivery-queue"
 _FALLBACK_CHANNEL = "1488727410672140398"
+_DISCORD_API = "https://discord.com/api/v10/channels/{channel_id}/messages"
+_BOT_TOKENS: dict[str, str] = {
+    "uropclaw1": os.getenv("DISCORD_BOT_TOKEN_UROPCLAW1", os.getenv("DISCORD_BOT_TOKEN", "")),
+    "uropclaw2": os.getenv("DISCORD_BOT_TOKEN_UROPCLAW2", os.getenv("DISCORD_BOT_TOKEN", "")),
+    "uropclaw3": os.getenv("DISCORD_BOT_TOKEN_UROPCLAW3", os.getenv("DISCORD_BOT_TOKEN", "")),
+    "uropclaw4": os.getenv("DISCORD_BOT_TOKEN_UROPCLAW4", os.getenv("DISCORD_BOT_TOKEN", "")),
+}
 
 _COLOR_KO = {
     "blue": "파란색", "red": "빨간색", "white": "흰색", "black": "검은색",
@@ -490,6 +499,10 @@ class AlertWorker(threading.Thread):
         try:
             mission = read_mission()
             channel_id = (mission or {}).get("discord_channel_id", _FALLBACK_CHANNEL)
+            token = _BOT_TOKENS.get(agent_id, "")
+            if not token:
+                log.warning(f"[{agent_id}] Discord bot token not set, skipping alert")
+                return
 
             color_ko = _COLOR_KO.get(event["color"], event["color"])
             class_ko = _CLASS_KO.get(event["yolo_class"], event["yolo_class"])
@@ -509,31 +522,19 @@ class AlertWorker(threading.Thread):
                 f"━━━━━━━━━━━━━━━━━━━━"
             )
 
-            item_id = str(uuid.uuid4())
-            payload = {
-                "id": item_id,
-                "enqueuedAt": int(time.time() * 1000),
-                "channel": "discord",
-                "to": f"channel:{channel_id}",
-                "payloads": [{"text": text}],
-                "threadId": None,
-                "mirror": {
-                    "sessionKey": f"agent:{agent_id}:discord:channel:{channel_id}",
-                    "agentId": agent_id,
-                    "text": text,
-                    "idempotencyKey": item_id,
-                },
-                "retryCount": 0,
-                "lastAttemptAt": None,
-                "lastError": None,
-            }
-
-            _DELIVERY_QUEUE.mkdir(parents=True, exist_ok=True)
-            item_path = _DELIVERY_QUEUE / f"{item_id}.json"
-            item_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
-            log.info(f"[{agent_id}] Discord alert enqueued → channel:{channel_id}")
+            url = _DISCORD_API.format(channel_id=channel_id)
+            resp = requests.post(
+                url,
+                headers={"Authorization": f"Bot {token}", "Content-Type": "application/json"},
+                json={"content": text},
+                timeout=5.0,
+            )
+            if resp.status_code == 200:
+                log.info(f"[{agent_id}] Discord alert sent → channel:{channel_id}")
+            else:
+                log.warning(f"[{agent_id}] Discord API error {resp.status_code}: {resp.text[:100]}")
         except Exception as e:
-            log.warning(f"[{agent_id}] Failed to enqueue Discord alert: {e}")
+            log.warning(f"[{agent_id}] Failed to send Discord alert: {e}")
 
 
 # ── Thread-5: Metrics Writer ──────────────────────────────────────────────────
