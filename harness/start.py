@@ -221,6 +221,8 @@ def main():
     tm = client.get_trafficmanager(CARLA_TM_PORT)
     tm.set_synchronous_mode(True)
     tm.set_random_device_seed(args.seed)
+    tm.global_percentage_speed_difference(-30)  # 제한속도 대비 30% 빠르게
+    tm.set_global_distance_to_leading_vehicle(2.0)  # 차간거리 2m (기본 1m → 더 자연스럽게)
 
     spawn_points = world.get_map().get_spawn_points()
 
