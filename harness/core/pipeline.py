@@ -32,6 +32,13 @@ VERIFICATION_REQUEST_PATH = WORKSPACE_BASE / "uropclaw1" / "state" / "verificati
 VERIFICATION_RESPONSE_PATH = WORKSPACE_BASE / "uropclaw1" / "state" / "verification_response.json"
 OPENCLAW_TIMEOUT_S = 30.0
 OPENCLAW_POLL_INTERVAL_S = 0.5
+MAX_CROPS_PER_AGENT = 50
+
+
+def _trim_crops(crops_dir: Path, max_files: int = MAX_CROPS_PER_AGENT) -> None:
+    files = sorted(crops_dir.glob("*.jpg"), key=lambda f: f.stat().st_mtime)
+    for old in files[:-max_files]:
+        old.unlink(missing_ok=True)
 
 
 def _state_dir(agent_id: str) -> Path:
@@ -319,6 +326,7 @@ class OpenClawWorker(threading.Thread):
                 import cv2
                 cv2.imwrite(str(crop_path_obj), crop)
                 crop_path = str(crop_path_obj)
+                _trim_crops(crops_dir)
 
         request = {
             "request_id": request_id,
@@ -442,6 +450,7 @@ class AlertWorker(threading.Thread):
         crop = frame[max(0, y1):y2, max(0, x1):x2]
         if crop.size > 0:
             cv2.imwrite(str(crop_path), crop)
+            _trim_crops(crops_dir)
 
         event = {
             "event_id": event_id,
