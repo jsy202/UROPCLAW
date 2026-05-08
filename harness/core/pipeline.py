@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import math
 import re
 import subprocess
 import threading
@@ -26,7 +27,7 @@ from perception.deduplicator import Deduplicator
 from core.mission import is_active, get_target_color, read_mission
 from policy.alert_policy import AlertPolicy
 from evaluation.baseline import BaselineMode, color_filter_enabled, dedup_enabled, BASELINE_N
-from config import WORKSPACE_BASE
+from config import WORKSPACE_BASE, CAMERA_WIDTH, CAMERA_HEIGHT, CAMERA_FOV
 
 log = logging.getLogger(__name__)
 
@@ -176,7 +177,8 @@ class YoloWorker(threading.Thread):
                             "yolo_class": "car",
                             "yolo_confidence": 0.0,
                             "class_id": -1,
-                            "location": item.get("location"),
+                            "cam_location": item.get("cam_location"),
+                            "cam_rotation": item.get("cam_rotation"),
                         })
                     except Exception:
                         self._metrics["frames_dropped"] += 1
@@ -212,7 +214,8 @@ class YoloWorker(threading.Thread):
                                 "yolo_class": det.class_name,
                                 "yolo_confidence": det.confidence,
                                 "class_id": -1,
-                                "location": item.get("location"),
+                                "cam_location": item.get("cam_location"),
+                                "cam_rotation": item.get("cam_rotation"),
                             })
                         except Exception:
                             self._metrics["frames_dropped"] += 1
@@ -274,7 +277,8 @@ class YoloWorker(threading.Thread):
                             "yolo_confidence": matched_det.confidence if matched_det else 0.0,
                             "class_id": track.class_id,
                             "dedup_enabled": use_dedup,
-                            "location": item.get("location"),
+                            "cam_location": item.get("cam_location"),
+                            "cam_rotation": item.get("cam_rotation"),
                         })
                     except Exception:
                         self._metrics["frames_dropped"] += 1
@@ -287,6 +291,60 @@ def _dominant_ratio(history: list[str], color: str) -> float:
     if not history:
         return 0.0
     return history.count(color) / len(history)
+
+
+def _estimate_vehicle_pos(cam_loc: dict, cam_rot: dict, bbox: list[int]) -> Optional[dict]:
+    """Project bbox bottom-center ray onto road plane to estimate vehicle world position.
+
+    CARLA camera convention: x=right, y=down, z=forward (optical axis).
+    CARLA world convention: x=forward, y=right, z=up (UE4 left-hand).
+    """
+    try:
+        cx, cy, cz = cam_loc["x"], cam_loc["y"], cam_loc["z"]
+        if cz < 0.3:
+            return None
+
+        yaw_r = math.radians(cam_rot.get("yaw", 0.0))
+        pitch_r = math.radians(cam_rot.get("pitch", 0.0))
+
+        focal = (CAMERA_WIDTH / 2) / math.tan(math.radians(CAMERA_FOV / 2))
+
+        # Bottom-center of bbox = where the vehicle touches the ground (image coords)
+        u = (bbox[0] + bbox[2]) / 2.0
+        v = float(bbox[3])
+
+        # Direction in camera space
+        dx = (u - CAMERA_WIDTH / 2) / focal
+        dy = (v - CAMERA_HEIGHT / 2) / focal
+        dz = 1.0
+
+        # Camera axes in world space (yaw + pitch, roll=0)
+        sp, cp = math.sin(pitch_r), math.cos(pitch_r)
+        sy, cy_r = math.sin(yaw_r), math.cos(yaw_r)
+
+        # cam-right  → world direction
+        rx, ry, rz = -sy, cy_r, 0.0
+        # cam-down   → world direction
+        dwx, dwy, dwz = -cp * cy_r, -cp * sy, sp  # (negative of up)
+        # cam-forward → world direction
+        fx, fy, fz = cp * cy_r, cp * sy, sp
+
+        # World direction for this pixel
+        wx = dx * rx + dy * dwx + dz * fx
+        wy = dx * ry + dy * dwy + dz * fy
+        wz = dx * rz + dy * dwz + dz * fz
+
+        if wz >= 0:  # ray going upward — won't hit road
+            return None
+
+        ground_z = 0.3  # CARLA road surface is ~0.3 m above world origin
+        t = (ground_z - cz) / wz
+        if t < 0.5 or t > 180:
+            return None
+
+        return {"x": round(cx + t * wx, 1), "y": round(cy + t * wy, 1)}
+    except Exception:
+        return None
 
 
 def _crop_padded(frame: np.ndarray, bbox: list[int], pad_ratio: float = 0.35, min_px: int = 160) -> np.ndarray:
@@ -517,6 +575,10 @@ class AlertWorker(threading.Thread):
             cv2.imwrite(str(crop_path), crop)
             _trim_crops(crops_dir)
 
+        cam_loc = item.get("cam_location")
+        cam_rot = item.get("cam_rotation")
+        vehicle_pos = _estimate_vehicle_pos(cam_loc, cam_rot, bbox) if (cam_loc and cam_rot) else None
+
         event = {
             "event_id": event_id,
             "camera_id": camera_id,
@@ -528,7 +590,7 @@ class AlertWorker(threading.Thread):
             "yolo_class": yolo_class,
             "yolo_confidence": round(yolo_confidence, 4),
             "bbox": bbox,
-            "location": item.get("location"),
+            "location": vehicle_pos,
             "mission_id": mission_id,
             "crop_path": str(crop_path),
             "openclaw_result": item.get("openclaw_result"),
@@ -558,7 +620,7 @@ class AlertWorker(threading.Thread):
             zone = agent_id.replace("uropclaw", "구역")
 
             loc = event.get("location")
-            loc_str = f"x={loc['x']}, y={loc['y']}" if loc else "알 수 없음"
+            loc_str = f"x={loc['x']}, y={loc['y']}" if loc else "추정 불가"
 
             ocr = event.get("openclaw_result") or {}
             oc_reason = ocr.get("reason", "")
@@ -572,7 +634,7 @@ class AlertWorker(threading.Thread):
                 f"YOLO 신뢰도: {conf_pct}%\n"
                 f"색상 일치도: {score_pct}%\n"
                 f"AI 판단: {oc_reason} ({oc_conf})\n"
-                f"위치: {loc_str}\n"
+                f"차량 추정 위치: {loc_str}\n"
                 f"포착 시각: {ts}\n"
                 f"━━━━━━━━━━━━━━━━━━━━"
             )
