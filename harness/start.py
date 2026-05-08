@@ -105,6 +105,7 @@ def spawn_observers(world, tm, spawn_points: list, patrol: bool) -> dict[str, ca
         if vehicle:
             if patrol:
                 vehicle.set_autopilot(True, CARLA_TM_PORT)
+                tm.ignore_lights_percentage(vehicle, 100)
                 log.info(f"[{agent_id}] observer vehicle spawned (patrol mode)")
             else:
                 vehicle.set_autopilot(False, CARLA_TM_PORT)
@@ -135,6 +136,7 @@ def spawn_background(world, tm, count: int, seed: int,
         actor = world.try_spawn_actor(bp, sp)
         if actor:
             actor.set_autopilot(True, CARLA_TM_PORT)
+            tm.ignore_lights_percentage(actor, 100)
             spawned.append(actor)
 
     log.info(f"Background NPC vehicles: {len(spawned)}/{count}")
@@ -173,6 +175,7 @@ def spawn_target(world, tm, color: str, count: int, seed: int) -> list[carla.Act
         actor = world.try_spawn_actor(bp, sp)
         if actor:
             actor.set_autopilot(True, CARLA_TM_PORT)
+            tm.ignore_lights_percentage(actor, 100)
             spawned.append(actor)
             log.info(f"Target vehicle spawned: {color}({carla_rgb}) "
                      f"at x={sp.location.x:.1f}, y={sp.location.y:.1f}")
