@@ -196,8 +196,10 @@ def main():
     parser.add_argument("--bg-count", type=int, default=20,
                         help="Background NPC count (default: 20)")
     parser.add_argument("--seed", type=int, default=RANDOM_SEED)
-    parser.add_argument("--patrol", action="store_true",
-                        help="Observer vehicles patrol (autopilot) instead of stationary")
+    parser.add_argument("--patrol", action="store_true", default=True,
+                        help="Observer vehicles patrol with autopilot (default: True)")
+    parser.add_argument("--no-patrol", dest="patrol", action="store_false",
+                        help="Keep observer vehicles stationary")
     parser.add_argument("--baseline", choices=["A", "B", "C", "proposed"],
                         default="proposed")
     args = parser.parse_args()
