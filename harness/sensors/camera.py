@@ -60,7 +60,7 @@ class CameraManager:
         self._np_frames[agent_id] = {}
         self._last_capture[agent_id] = 0.0
 
-        for mount, t in CAMERA_MOUNTS.items():
+        for mount, t in {k: v for k, v in CAMERA_MOUNTS.items() if k == "front"}.items():
             transform = carla.Transform(
                 carla.Location(x=t["x"], y=t["y"], z=t["z"]),
                 carla.Rotation(pitch=t["pitch"], yaw=t["yaw"], roll=t["roll"]),

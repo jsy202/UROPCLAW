@@ -21,8 +21,8 @@ AGENT_IDS = ["uropclaw1", "uropclaw2", "uropclaw3", "uropclaw4"]
 VEHICLE_BLUEPRINT = os.getenv("VEHICLE_BLUEPRINT", "vehicle.tesla.model3")
 
 # Camera
-CAMERA_WIDTH = 1280
-CAMERA_HEIGHT = 720
+CAMERA_WIDTH = 640
+CAMERA_HEIGHT = 360
 CAMERA_FOV = 90
 
 CAMERA_MOUNTS = {
