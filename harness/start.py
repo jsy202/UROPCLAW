@@ -214,6 +214,16 @@ def main():
     _world = world
     log.info(f"Connected — map: {world.get_map().name}")
 
+    # 기존 차량/보행자 액터 전부 제거
+    existing = world.get_actors().filter("vehicle.*")
+    existing_peds = world.get_actors().filter("walker.*")
+    to_remove = list(existing) + list(existing_peds)
+    if to_remove:
+        log.info(f"Clearing {len(to_remove)} existing actors...")
+        client.apply_batch([carla.command.DestroyActor(a) for a in to_remove])
+        world.wait_for_tick()
+        log.info("World cleared.")
+
     # 동기화 모드 (10 FPS — CARLA 부하 완화)
     settings = world.get_settings()
     settings.synchronous_mode = True
