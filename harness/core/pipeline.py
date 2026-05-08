@@ -287,7 +287,7 @@ class OpenClawWorker(threading.Thread):
                 continue
 
             now = time.time()
-            key = f"{item['camera_id']}::{item['track_id']}"
+            key = item["agent_id"]  # 에이전트당 30초 1건 제한 (track_id 기준시 폭주)
 
             self._dedup.cleanup(now)
 
