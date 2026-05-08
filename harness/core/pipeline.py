@@ -55,10 +55,13 @@ class CarlaTickThread(threading.Thread):
         log.info("CarlaTickThread started")
         while not self.stop_event.is_set():
             try:
-                self.world.tick()
+                self.world.tick(60.0)
             except Exception as e:
                 log.warning(f"world.tick() error: {e}")
-                time.sleep(0.1)
+                time.sleep(1.0)
+            except BaseException as e:
+                log.error(f"world.tick() fatal error (retrying): {e}")
+                time.sleep(2.0)
 
 
 # ── Thread-2: YOLO Worker ─────────────────────────────────────────────────────

@@ -204,15 +204,15 @@ def main():
 
     # CARLA 연결 (Town03_Opt 이미 로드됨, 재로딩 없음)
     client = carla.Client(CARLA_HOST, CARLA_PORT)
-    client.set_timeout(10.0)
+    client.set_timeout(60.0)  # 메모리 부하 시 tick이 느릴 수 있으므로 여유있게
     world = client.get_world()
     _world = world
     log.info(f"Connected — map: {world.get_map().name}")
 
-    # 동기화 모드
+    # 동기화 모드 (10 FPS — CARLA 부하 완화)
     settings = world.get_settings()
     settings.synchronous_mode = True
-    settings.fixed_delta_seconds = 0.05
+    settings.fixed_delta_seconds = 0.1  # 10 FPS (0.05=20FPS 대비 절반 부하)
     world.apply_settings(settings)
 
     tm = client.get_trafficmanager(CARLA_TM_PORT)
