@@ -536,14 +536,28 @@ class AlertWorker(threading.Thread):
             )
 
             url = _DISCORD_API.format(channel_id=channel_id)
-            resp = requests.post(
-                url,
-                headers={"Authorization": f"Bot {token}", "Content-Type": "application/json"},
-                json={"content": text},
-                timeout=5.0,
-            )
-            if resp.status_code == 200:
-                log.info(f"[{agent_id}] Discord alert sent → channel:{channel_id}")
+            headers = {"Authorization": f"Bot {token}"}
+            crop_path = event.get("crop_path", "")
+            crop_file = Path(crop_path) if crop_path else None
+
+            if crop_file and crop_file.exists():
+                resp = requests.post(
+                    url,
+                    headers=headers,
+                    data={"payload_json": json.dumps({"content": text})},
+                    files={"files[0]": (crop_file.name, crop_file.read_bytes(), "image/jpeg")},
+                    timeout=8.0,
+                )
+            else:
+                resp = requests.post(
+                    url,
+                    headers={**headers, "Content-Type": "application/json"},
+                    json={"content": text},
+                    timeout=5.0,
+                )
+
+            if resp.status_code in (200, 201):
+                log.info(f"[{agent_id}] Discord alert sent → channel:{channel_id} (image={'yes' if crop_file and crop_file.exists() else 'no'})")
             else:
                 log.warning(f"[{agent_id}] Discord API error {resp.status_code}: {resp.text[:100]}")
         except Exception as e:
