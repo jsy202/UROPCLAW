@@ -546,13 +546,18 @@ class AlertWorker(threading.Thread):
             loc = event.get("location")
             loc_str = f"x={loc['x']}, y={loc['y']}" if loc else "알 수 없음"
 
+            ocr = event.get("openclaw_result") or {}
+            oc_reason = ocr.get("reason", "")
+            oc_conf = ocr.get("confidence", "n/a")
+
             text = (
                 f"🚨 [{zone} 카메라] 차량 포착\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"색상: {color_ko}\n"
                 f"차종: {class_ko}\n"
-                f"신뢰도: {conf_pct}%\n"
+                f"YOLO 신뢰도: {conf_pct}%\n"
                 f"색상 일치도: {score_pct}%\n"
+                f"AI 판단: {oc_reason} ({oc_conf})\n"
                 f"위치: {loc_str}\n"
                 f"포착 시각: {ts}\n"
                 f"━━━━━━━━━━━━━━━━━━━━"

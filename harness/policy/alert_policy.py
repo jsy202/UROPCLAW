@@ -20,6 +20,10 @@ class AlertPolicy:
         if candidate.get("color_score", 0) < self.color_score_threshold:
             return False
 
+        # YOLO가 현재 프레임에서 실제로 탐지해야 함 (트래커 잔상 제거)
+        if candidate.get("yolo_confidence", 0) < 0.25:
+            return False
+
         target_color = mission.get("target_color")
         if target_color and candidate.get("color") != target_color:
             return False
