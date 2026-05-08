@@ -3,7 +3,7 @@ from __future__ import annotations
 import threading
 from dataclasses import dataclass, field
 
-_OPENCLAW_COOLDOWN = 5.0
+_OPENCLAW_COOLDOWN = 30.0
 _DISCORD_COOLDOWN = 120.0
 
 
