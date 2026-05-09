@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
-from ultralytics import YOLO
 
 _TARGET_CLASSES: set[int] = {2, 3, 5, 7}  # car, motorcycle, bus, truck
 _CLASS_NAMES: dict[int, str] = {2: "car", 3: "motorcycle", 5: "bus", 7: "truck"}
@@ -12,12 +11,15 @@ _CLASS_NAMES: dict[int, str] = {2: "car", 3: "motorcycle", 5: "bus", 7: "truck"}
 _CONF = 0.40
 _IOU = 0.45
 
-_model: Optional[YOLO] = None
+_model = None  # ultralytics.YOLO, loaded on first detect()
 
 
-def _get_model() -> YOLO:
+def _get_model():
     global _model
     if _model is None:
+        # Imported lazily so the rest of the pipeline can be imported (and tested
+        # with an injected detector) where ultralytics/torch is not installed.
+        from ultralytics import YOLO
         _model = YOLO("yolov8s.pt")
     return _model
 

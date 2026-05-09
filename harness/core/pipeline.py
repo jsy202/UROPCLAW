@@ -113,6 +113,7 @@ class YoloWorker(threading.Thread):
         candidate_queue: Queue,
         metrics: dict,
         baseline_mode: str = "proposed",
+        detector=None,
     ) -> None:
         super().__init__(name="yolo-worker", daemon=True)
         self.stop_event = stop_event
@@ -120,6 +121,7 @@ class YoloWorker(threading.Thread):
         self._candidate_queue = candidate_queue
         self._metrics = metrics
         self._baseline_mode = baseline_mode
+        self._detect = detector or detect  # default: YOLOv8 (perception.yolo_detector.detect)
         self._trackers: dict[str, IoUTracker] = {}
         self._confirmer: dict[str, TemporalConfirm] = {}
         self._frame_count: int = 0
@@ -187,7 +189,7 @@ class YoloWorker(threading.Thread):
 
             try:
                 t_yolo_start = time.time()
-                detections: list[Detection] = detect(frame)
+                detections: list[Detection] = self._detect(frame)
                 yolo_elapsed_ms = (time.time() - t_yolo_start) * 1000.0
                 self._metrics.setdefault("yolo_latency_ms_list", []).append(round(yolo_elapsed_ms, 2))
 
@@ -374,6 +376,7 @@ class OpenClawWorker(threading.Thread):
         candidate_queue: Queue,
         result_queue: Queue,
         metrics: dict,
+        vlm_runner=None,
     ) -> None:
         super().__init__(name="openclaw-worker", daemon=True)
         self.stop_event = stop_event
@@ -381,6 +384,7 @@ class OpenClawWorker(threading.Thread):
         self._result_queue = result_queue
         self._metrics = metrics
         self._dedup = Deduplicator()
+        self._run_vlm = vlm_runner or subprocess.run  # default: `claude --print` CLI process
 
     def run(self) -> None:
         log.info("OpenClawWorker started (LLM image verification)")
@@ -477,7 +481,7 @@ class OpenClawWorker(threading.Thread):
             cmd = ["claude", "--print", "--model", "claude-haiku-4-5-20251001"]
             if crop_path:
                 cmd += ["--add-dir", str(Path(crop_path).parent)]
-            proc = subprocess.run(
+            proc = self._run_vlm(
                 cmd,
                 input=prompt.encode(),
                 capture_output=True,
@@ -520,12 +524,14 @@ class AlertWorker(threading.Thread):
         stop_event: threading.Event,
         result_queue: Queue,
         metrics: dict,
+        alert_sender=None,
     ) -> None:
         super().__init__(name="alert-worker", daemon=True)
         self.stop_event = stop_event
         self._result_queue = result_queue
         self._metrics = metrics
         self._alert_policy = AlertPolicy()
+        self._send_alert = alert_sender or self._enqueue_discord_alert  # default: Discord REST
 
     def run(self) -> None:
         log.info("AlertWorker started")
@@ -601,7 +607,7 @@ class AlertWorker(threading.Thread):
         event_path = state_dir / "detection_event.json"
         event_path.write_text(json.dumps(event, indent=2), encoding="utf-8")
         log.info(f"[{agent_id}] detection event written: track={track_id} color={color}")
-        self._enqueue_discord_alert(agent_id, event)
+        self._send_alert(agent_id, event)
 
     def _enqueue_discord_alert(self, agent_id: str, event: dict) -> None:
         try:
@@ -694,8 +700,14 @@ class MetricsWriter(threading.Thread):
 # ── Pipeline controller ───────────────────────────────────────────────────────
 
 class Pipeline:
-    def __init__(self, world, manager=None, camera=None, baseline_mode: str = "proposed") -> None:
+    def __init__(self, world, manager=None, camera=None, baseline_mode: str = "proposed",
+                 detector=None, vlm_runner=None, alert_sender=None) -> None:
+        # detector / vlm_runner / alert_sender default to the production YOLO, `claude` CLI
+        # and Discord implementations; tests and replay runs inject fakes.
         self._world = world
+        self._detector = detector
+        self._vlm_runner = vlm_runner
+        self._alert_sender = alert_sender
         self._manager = manager
         self._camera = camera
         self._baseline_mode = baseline_mode
@@ -726,16 +738,18 @@ class Pipeline:
         self._stop.clear()
         self._metrics["pipeline_start_time"] = time.time()
         self._threads = [
-            CarlaTickThread(self._world, self._stop),
             YoloWorker(self._stop, self.frame_queue, self._candidate_queue, self._metrics,
-                       baseline_mode=self._baseline_mode),
-            OpenClawWorker(self._stop, self._candidate_queue, self._result_queue, self._metrics),
-            AlertWorker(self._stop, self._result_queue, self._metrics),
+                       baseline_mode=self._baseline_mode, detector=self._detector),
+            OpenClawWorker(self._stop, self._candidate_queue, self._result_queue, self._metrics,
+                           vlm_runner=self._vlm_runner),
+            AlertWorker(self._stop, self._result_queue, self._metrics, alert_sender=self._alert_sender),
             MetricsWriter(self._stop, self._metrics),
         ]
+        if self._world is not None:  # replay/test mode runs without a CARLA world
+            self._threads.insert(0, CarlaTickThread(self._world, self._stop))
         for t in self._threads:
             t.start()
-        log.info("Pipeline started (5 threads)")
+        log.info(f"Pipeline started ({len(self._threads)} threads)")
 
     def stop(self) -> None:
         self._stop.set()
