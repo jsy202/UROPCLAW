@@ -490,7 +490,11 @@ class OpenClawWorker(threading.Thread):
             text = proc.stdout.decode().strip()
             m = re.search(r'\{.*?\}', text, re.DOTALL)
             if m:
-                data = json.loads(m.group())
+                try:
+                    data = json.loads(m.group())
+                except json.JSONDecodeError:
+                    data = None
+            if m and data is not None:
                 return {
                     "confirmed": bool(data.get("confirmed", False)),
                     "confidence": data.get("confidence", "low"),
@@ -500,10 +504,13 @@ class OpenClawWorker(threading.Thread):
                     "color_observed": data.get("color", ""),
                     "reason": data.get("reason", ""),
                 }
+            self._metrics["openclaw_parse_failures"] = self._metrics.get("openclaw_parse_failures", 0) + 1
             log.warning(f"[openclaw] LLM response parse failed: {text[:120]}")
         except subprocess.TimeoutExpired:
+            self._metrics["openclaw_timeouts"] = self._metrics.get("openclaw_timeouts", 0) + 1
             log.warning("[openclaw] LLM verify timeout (25s)")
         except Exception as e:
+            self._metrics["openclaw_errors"] = self._metrics.get("openclaw_errors", 0) + 1
             log.warning(f"[openclaw] LLM verify error: {e}")
 
         # Fail open: LLM 오류 시 통과 (시스템 중단 방지)
@@ -731,6 +738,8 @@ class Pipeline:
             "openclaw_calls": 0,
             "openclaw_confirmed": 0,
             "openclaw_timeouts": 0,
+            "openclaw_errors": 0,          # VLM process could not run / raised
+            "openclaw_parse_failures": 0,  # VLM answered but no valid JSON
             "pipeline_start_time": time.time(),
         }
 

@@ -37,7 +37,6 @@ def test_vlm_timeout_fails_open_and_still_alerts(make_pipeline):
     assert result["confirmed"] is True and result["confidence"] == "n/a"
 
 
-@pytest.mark.xfail(strict=True, reason="DEF-U01: VLM timeout is logged but metrics['openclaw_timeouts'] (initialised to 0) is never incremented")
 def test_vlm_timeout_is_counted(make_pipeline):
     # REQ: a VLM timeout must be visible in metrics (openclaw_timeouts exists but is never incremented).
     p, alert = _run_blue(make_pipeline, vlm=TimeoutVLM())
@@ -45,7 +44,6 @@ def test_vlm_timeout_is_counted(make_pipeline):
     assert p.metrics_summary()["openclaw_timeouts"] == 1
 
 
-@pytest.mark.xfail(strict=True, reason="DEF-U02: VLM process errors are only logged; no metric records them")
 def test_vlm_process_error_fails_open_and_is_counted(make_pipeline):
     # REQ: a VLM process error (CLI missing) must be counted, separately from timeouts.
     p, alert = _run_blue(make_pipeline, vlm=ErrorVLM())
@@ -54,7 +52,6 @@ def test_vlm_process_error_fails_open_and_is_counted(make_pipeline):
     assert p.metrics_summary().get("openclaw_errors") == 1
 
 
-@pytest.mark.xfail(strict=True, reason="DEF-U03: unparseable VLM responses are only logged; no metric records them")
 def test_vlm_malformed_response_fails_open_and_is_counted(make_pipeline):
     # REQ: an unparseable VLM answer must be counted.
     p, alert = _run_blue(make_pipeline, vlm=MalformedResponseVLM())
@@ -182,3 +179,17 @@ def test_candidate_queue_overflow_is_not_counted_as_frame_drop(workspace):
     stop.set(); w.join(2)
     assert metrics["frames_dropped"] == 0
     assert metrics.get("candidates_dropped") == 3
+
+
+def test_vlm_broken_json_is_counted_as_parse_failure(make_pipeline):
+    # A brace-delimited but invalid JSON answer: previously fell into the generic error path.
+    from fakes.components import _VLMBase
+
+    class BrokenJSONVLM(_VLMBase):
+        def respond(self, cmd, timeout):
+            return self._done(cmd, "{confirmed: yes, confidence: high}")
+
+    p, alert = _run_blue(make_pipeline, vlm=BrokenJSONVLM())
+    assert wait_until(lambda: alert.attempts)
+    m = p.metrics_summary()
+    assert m["openclaw_parse_failures"] == 1 and m["openclaw_errors"] == 0
