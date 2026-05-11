@@ -614,16 +614,24 @@ class AlertWorker(threading.Thread):
         event_path = state_dir / "detection_event.json"
         event_path.write_text(json.dumps(event, indent=2), encoding="utf-8")
         log.info(f"[{agent_id}] detection event written: track={track_id} color={color}")
-        self._send_alert(agent_id, event)
+        # alerts_sent (run()) counts attempts; delivery outcome is counted here.
+        try:
+            delivered = bool(self._send_alert(agent_id, event))
+        except Exception as e:
+            log.warning(f"[{agent_id}] alert sender raised: {e}")
+            delivered = False
+        key = "alerts_delivered" if delivered else "alerts_failed"
+        self._metrics[key] = self._metrics.get(key, 0) + 1
 
-    def _enqueue_discord_alert(self, agent_id: str, event: dict) -> None:
+    def _enqueue_discord_alert(self, agent_id: str, event: dict) -> bool:
+        """Send the alert to Discord. Returns True only if Discord accepted it (HTTP 200/201)."""
         try:
             mission = read_mission()
             channel_id = (mission or {}).get("discord_channel_id", _FALLBACK_CHANNEL)
             token = _BOT_TOKENS.get(agent_id, "")
             if not token:
                 log.warning(f"[{agent_id}] Discord bot token not set, skipping alert")
-                return
+                return False
 
             color_ko = _COLOR_KO.get(event["color"], event["color"])
             class_ko = _CLASS_KO.get(event["yolo_class"], event["yolo_class"])
@@ -675,10 +683,12 @@ class AlertWorker(threading.Thread):
 
             if resp.status_code in (200, 201):
                 log.info(f"[{agent_id}] Discord alert sent → channel:{channel_id} (image={'yes' if crop_file and crop_file.exists() else 'no'})")
-            else:
-                log.warning(f"[{agent_id}] Discord API error {resp.status_code}: {resp.text[:100]}")
+                return True
+            log.warning(f"[{agent_id}] Discord API error {resp.status_code}: {resp.text[:100]}")
+            return False
         except Exception as e:
             log.warning(f"[{agent_id}] Failed to send Discord alert: {e}")
+            return False
 
 
 # ── Thread-5: Metrics Writer ──────────────────────────────────────────────────
@@ -733,7 +743,9 @@ class Pipeline:
             "detections_total": 0,
             "color_filter_passed": 0,
             "candidates_raised": 0,
-            "alerts_sent": 0,
+            "alerts_sent": 0,       # alerts attempted (passed AlertPolicy)
+            "alerts_delivered": 0,  # alert sender reported success
+            "alerts_failed": 0,     # alert sender failed / raised / no token
             "duplicate_suppressed": 0,
             "openclaw_calls": 0,
             "openclaw_confirmed": 0,

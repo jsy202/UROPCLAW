@@ -85,7 +85,6 @@ def test_alerts_sent_counts_attempts_not_deliveries(make_pipeline):
     assert p.metrics_summary()["alerts_sent"] == 1
 
 
-@pytest.mark.xfail(strict=True, reason="DEF-U04: alerts_sent is incremented before delivery; Discord failures are only logged")
 def test_alert_delivery_failure_is_counted(make_pipeline):
     # REQ: delivered and failed alerts must be distinguishable in metrics.
     p, alert = _run_blue(make_pipeline, alert=FakeAlert(fail="false"))
@@ -193,3 +192,38 @@ def test_vlm_broken_json_is_counted_as_parse_failure(make_pipeline):
     assert wait_until(lambda: alert.attempts)
     m = p.metrics_summary()
     assert m["openclaw_parse_failures"] == 1 and m["openclaw_errors"] == 0
+
+
+def test_successful_alert_is_counted_as_delivered(make_pipeline):
+    p, alert = _run_blue(make_pipeline)
+    assert wait_until(lambda: alert.attempts)
+    assert wait_until(lambda: p.metrics_summary()["alerts_delivered"] == 1)
+    assert p.metrics_summary()["alerts_failed"] == 0
+
+
+def test_discord_sender_without_token_reports_not_delivered(workspace, monkeypatch):
+    # Production Discord sender: no token -> no HTTP call, returns False (counted as failed).
+    import core.pipeline as pm
+    import threading
+    from queue import Queue
+    monkeypatch.setattr(pm, "_BOT_TOKENS", {"uropclaw1": ""})
+    called = []
+    monkeypatch.setattr(pm.requests, "post", lambda *a, **k: called.append(1))
+    w = pm.AlertWorker(threading.Event(), Queue(), {})
+    assert w._enqueue_discord_alert("uropclaw1", {"color": "blue", "yolo_class": "car", "yolo_confidence": 0.9,
+                                                  "color_score": 0.8, "timestamp": 0}) is False
+    assert called == []
+
+
+def test_discord_sender_http_error_reports_not_delivered(workspace, monkeypatch):
+    import core.pipeline as pm
+    import threading
+    from queue import Queue
+    from types import SimpleNamespace
+    monkeypatch.setattr(pm, "_BOT_TOKENS", {"uropclaw1": "test-token"})
+    monkeypatch.setattr(pm.requests, "post", lambda *a, **k: SimpleNamespace(status_code=500, text="boom"))
+    w = pm.AlertWorker(threading.Event(), Queue(), {})
+    ev = {"color": "blue", "yolo_class": "car", "yolo_confidence": 0.9, "color_score": 0.8, "timestamp": 0}
+    assert w._enqueue_discord_alert("uropclaw1", ev) is False
+    monkeypatch.setattr(pm.requests, "post", lambda *a, **k: SimpleNamespace(status_code=200, text="ok"))
+    assert w._enqueue_discord_alert("uropclaw1", ev) is True
