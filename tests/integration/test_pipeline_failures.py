@@ -161,7 +161,6 @@ def test_inactive_mission_skips_processing(make_pipeline, workspace):
     assert det.calls == 0
 
 
-@pytest.mark.xfail(strict=True, reason="DEF-U05: candidate-queue overflow is counted in frames_dropped, inflating frame_drop_rate")
 def test_candidate_queue_overflow_is_not_counted_as_frame_drop(workspace):
     # REQ: frames_dropped means dropped *frames* (README: frame_drop_rate = frames_dropped / frames_received);
     # candidates lost because the candidate queue is full must be counted separately.

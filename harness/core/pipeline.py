@@ -182,8 +182,8 @@ class YoloWorker(threading.Thread):
                             "cam_location": item.get("cam_location"),
                             "cam_rotation": item.get("cam_rotation"),
                         })
-                    except Exception:
-                        self._metrics["frames_dropped"] += 1
+                    except Exception:  # candidate_queue full
+                        self._metrics["candidates_dropped"] = self._metrics.get("candidates_dropped", 0) + 1
                 self._metrics["frames_processed"] = self._frame_count
                 continue
 
@@ -219,8 +219,8 @@ class YoloWorker(threading.Thread):
                                 "cam_location": item.get("cam_location"),
                                 "cam_rotation": item.get("cam_rotation"),
                             })
-                        except Exception:
-                            self._metrics["frames_dropped"] += 1
+                        except Exception:  # candidate_queue full
+                            self._metrics["candidates_dropped"] = self._metrics.get("candidates_dropped", 0) + 1
                     continue
 
                 # Baseline C / Proposed: color filter 적용
@@ -282,8 +282,8 @@ class YoloWorker(threading.Thread):
                             "cam_location": item.get("cam_location"),
                             "cam_rotation": item.get("cam_rotation"),
                         })
-                    except Exception:
-                        self._metrics["frames_dropped"] += 1
+                    except Exception:  # candidate_queue full
+                        self._metrics["candidates_dropped"] = self._metrics.get("candidates_dropped", 0) + 1
 
             except Exception as e:
                 log.error(f"YoloWorker error: {e}", exc_info=True)
@@ -738,7 +738,8 @@ class Pipeline:
         self._metrics: dict = {
             "baseline_mode": baseline_mode,
             "frames_received": 0,
-            "frames_dropped": 0,
+            "frames_dropped": 0,      # frames: stale (>2 s) or frame_queue full
+            "candidates_dropped": 0,  # candidates lost because candidate_queue was full
             "frames_processed": 0,
             "detections_total": 0,
             "color_filter_passed": 0,
