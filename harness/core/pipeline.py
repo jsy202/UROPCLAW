@@ -179,6 +179,7 @@ class YoloWorker(threading.Thread):
                             "yolo_class": "car",
                             "yolo_confidence": 0.0,
                             "class_id": -1,
+                            "dedup_enabled": dedup_enabled(mode),  # False for A/B (baseline.py)
                             "cam_location": item.get("cam_location"),
                             "cam_rotation": item.get("cam_rotation"),
                         })
@@ -216,6 +217,7 @@ class YoloWorker(threading.Thread):
                                 "yolo_class": det.class_name,
                                 "yolo_confidence": det.confidence,
                                 "class_id": -1,
+                                "dedup_enabled": dedup_enabled(mode),  # False for A/B (baseline.py)
                                 "cam_location": item.get("cam_location"),
                                 "cam_rotation": item.get("cam_rotation"),
                             })

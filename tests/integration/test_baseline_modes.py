@@ -16,7 +16,6 @@ def test_baseline_c_never_calls_vlm(make_pipeline):
     assert vlm.calls == 0
 
 
-@pytest.mark.xfail(strict=True, reason="DEF-U06: baseline B candidates carry no 'dedup_enabled' key; OpenClawWorker defaults it to True, so B is deduplicated (30 s/agent) although baseline.py defines dedup only for 'proposed'")
 def test_baseline_b_sends_every_detection_to_vlm_without_dedup(make_pipeline):
     # REQ: baseline B = "YOLO -> OpenClaw, no color filter, no dedup" (baseline.py / README §8).
     vlm = SuccessVLM()
@@ -27,7 +26,6 @@ def test_baseline_b_sends_every_detection_to_vlm_without_dedup(make_pipeline):
     assert p.metrics_summary()["duplicate_suppressed"] == 0
 
 
-@pytest.mark.xfail(strict=True, reason="DEF-U06: baseline A candidates are deduplicated for the same reason")
 def test_baseline_a_sends_every_nth_frame_to_vlm_without_dedup(make_pipeline, monkeypatch):
     import core.pipeline as pm
     monkeypatch.setattr(pm, "BASELINE_N", 2)   # production 30; every 2nd frame here
