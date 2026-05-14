@@ -1,0 +1,27 @@
+name: tests
+
+# CARLA / GPU / VLM / Discord-free verification of the AI pipeline:
+# real pipeline stages with FakeDetector, fake VLM processes and a fake alert sender.
+on:
+  push:
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"  # only version verified locally
+      - name: Install test dependencies (no carla / ultralytics / torch)
+        run: python -m pip install -r requirements-test.txt
+      - name: Syntax check
+        run: python -m compileall -q harness tests tools
+      - name: Unit tests
+        run: python -m pytest tests/unit -v
+      - name: Integration tests (replay + fakes)
+        run: python -m pytest tests/integration -v
+      - name: Replay benchmark smoke run
+        run: python tools/replay_benchmark.py --modes proposed --frames 30 --out benchmark_ci.json
