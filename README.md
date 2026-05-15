@@ -1,4 +1,72 @@
-# UROPCLAW — AI 멀티에이전트 차량 감시 시스템
+# UROPCLAW — AI Multi-agent Vehicle Surveillance · Post-project AI Pipeline Validation
+
+## Project
+CARLA 카메라 영상에서 미션 대상 색상의 차량을 찾아 Discord로 경보하는 AI 멀티에이전트 감시 시스템이다.
+
+## Architecture
+```text
+CARLA camera ─▶ frame_queue ─▶ YOLOv8 ─▶ HSV color ─▶ IoU tracker ─▶ temporal confirm (3 frames)
+   ─▶ candidate_queue ─▶ dedup (30 s/agent) ─▶ VLM (`claude --print`, fail-open) ─▶ result_queue
+   ─▶ AlertPolicy ─▶ detection_event.json + crop ─▶ Discord
+```
+코드 기준 상세 구조: [pipeline_architecture.md](validation/pipeline_architecture.md)
+
+## Original Research
+연구 당시에는 다음을 구현했다. 아래 "Original Research Documentation"은 당시 README 원문이며 수정하지 않았다.
+
+- 5스레드 파이프라인
+- 4개 Discord agent
+- 평가 baseline A/B/C/proposed
+
+연구 당시 수치 결과는 이 저장소에 없다. 연구 당시 코드는 tag [`research-baseline`](https://github.com/jsy202/UROPCLAW/tree/research-baseline) (`f0d7651`)에 있다.
+
+## Post-project Validation (2026-10, 연구 종료 후)
+AI 모델의 정확도가 아니라, **다단계 파이프라인의 데이터 전달, 외부 의존성 장애 처리, 관측 가능성**을 검증했다.
+
+- 최소 주입 경계를 추가했다: `Pipeline(detector, vlm_runner, alert_sender)`, `world=None`. 기본값은 기존 YOLOv8, `claude` CLI, Discord다.
+- 테스트에서는 이 3가지만 FakeDetector, Fake VLM(성공/거부/timeout/오류/형식 오류), FakeAlert로 바꾼다.
+- HSV, tracker, temporal confirm, dedup, VLM 파싱, AlertPolicy, event 기록은 **실제 코드**로 실행한다.
+- 입력은 기존 `push_frame()` 경계를 통한 replay(합성 장면, 이미지 파일)다.
+
+## Key Findings (모두 이번 검증에서 테스트로 재현 → 수정)
+| ID | 결함 | 수정 |
+|---|---|---|
+| U01–U03 | VLM이 fail-open인데 timeout, 프로세스 오류, 파싱 실패가 **지표에 나타나지 않음**(`openclaw_timeouts`가 항상 0). VLM이 장애 상태여도 "모두 확인됨"과 구분되지 않았다 | `f20d51f` |
+| U04 | `alerts_sent`가 전송 전에 증가해서 Discord 실패를 구분할 수 없었다 | `6878cb4` |
+| U05 | candidate 큐 포화가 `frames_dropped`로 집계되어 frame_drop_rate가 부풀려졌다 | `2bfced2` |
+| U06 | 평가 baseline A/B에도 30 s dedup이 적용되었다(`baseline.py` 정의와 다름). B 모드에서 탐지 5건에 VLM 1회 | `0d79f2d` |
+
+fail-open 설계 자체는 유지했다. 이번 수정으로 장애가 지표로 보이게 되었다.
+
+## Verification
+- 결함마다 strict xfail 테스트로 먼저 commit한 뒤, 수정 commit에서 PASS로 바꿨다.
+- 장애 주입 14종: VLM timeout, 오류, 형식 오류, 거부, alert 실패와 예외, 탐지 없음, 잘못된 프레임, tracking 공백, 오래된 프레임, frame/candidate 큐 포화, 미션 비활성, baseline 모드.
+- Replay benchmark(Before/After)를 측정했다. **조건: 합성 입력(단색 박스), FakeDetector, 0.2 s 고정 지연 Fake VLM, 기록용 alert. 실제 CARLA, YOLO, VLM, Discord는 쓰지 않았다.** 이 조건에서 baseline B를 정의대로(dedup 없이) 돌리면 VLM 단계가 병목이 되는 것을 관측했다(300 candidate 중 247개 drop). **이 수치는 위 합성 조건의 결과이며 실제 운영 환경의 수치가 아니다.** → [benchmark.md](validation/benchmark.md)
+- 문서: [requirements](validation/requirements.md) · [failure model](validation/failure_model.md) · [test cases](validation/test_cases.md) · [traceability](validation/traceability_matrix.md) · [test report](validation/test_report.md)
+
+## Test Result
+| 테스트 | PASS | XFAIL | FAILED |
+|---|---|---|---|
+| 36 (integration 25, unit 11) | 36 | 0 | 0 |
+
+Python 3.10, 로컬 실행. 10회 연속 실행에서 매회 같은 결과였다. GitHub Actions 결과는 workflow `tests`를 참고한다.
+
+## Limitations
+- YOLOv8의 정확도와 지연, 실제 VLM의 품질과 지연, Discord 전송, CARLA 입력은 **검증하지 않았다.**
+- benchmark의 VLM 지연 0.2 s는 인위적인 값이다. 합성 장면은 실제 영상의 난이도를 반영하지 않는다.
+- README와 코드가 다른 부분(정적 확인, 미수정): VLM 호출 조건, timeout 30 s/25 s, Discord 120 s 쿨다운. → [limitations.md](validation/limitations.md)
+
+## How to Run Tests (CARLA·GPU·VLM·Discord 불필요)
+```bash
+pip install -r requirements-test.txt     # pytest, numpy, opencv-python-headless, requests
+python3 -m pytest
+python3 tools/replay_benchmark.py --modes A B C proposed --frames 150 --repeat 3 --out /tmp/bench.json
+```
+
+---
+
+## Original Research Documentation (연구 당시 README 원문)
+
 
 > CARLA 시뮬레이터 + YOLOv8 + HSV 색상 필터 + OpenClaw (Discord AI 봇) 를 결합한  
 > 실시간 차량 탐지 및 Discord 경보 시스템
@@ -481,56 +549,3 @@ verification_response.json ← AI 에이전트가 검증 결과 작성
 
 이 프로젝트는 연구/교육 목적으로 제작되었습니다.  
 CARLA 시뮬레이터는 [CARLA 라이선스](https://carla.org/), YOLOv8은 [AGPL-3.0](https://github.com/ultralytics/ultralytics)을 따릅니다.
-
----
-
-## Post-project AI Pipeline Validation
-
-> 이 섹션은 **연구 종료 후(2026-10)** 수행한 검증 작업이다. 위의 시스템 설명은 연구 당시 내용이며 수정하지 않았다.
-> 아래 결함은 **이번 검증에서 처음 발견한 것**이다. 연구 당시 코드는 tag `research-baseline`(`f0d7651`)에 있다.
-> 이 저장소에는 연구 당시의 수치 결과가 없다. 아래 benchmark는 새로 측정한 것이며 연구 결과를 대체하지 않는다.
-
-### 목적
-
-AI 모델의 성능이 아니라, **다단계 파이프라인(Camera → Detector → HSV → Tracker → Temporal → VLM → Alert)이 데이터를 올바르게 전달하는지, 외부 의존성 장애에서도 계속 동작하고 그 장애가 관측 가능한지**를 확인한다. CARLA, GPU, VLM, Discord 없이 반복 가능해야 한다.
-
-### 테스트 구조
-
-```text
-[Production]  CARLA camera ─▶ frame_queue ─▶ YOLOv8 ─▶ HSV ─▶ IoU tracker ─▶ Temporal ─▶ `claude` CLI ─▶ Discord
-[Test/Replay] Synthetic / image replay ─▶ push_frame ─▶ FakeDetector ─▶ (실제 HSV, tracker, temporal, dedup, VLM 파싱, AlertPolicy)
-              ─▶ Success/Timeout/Error/Malformed VLM ─▶ FakeAlert
-```
-
-production 기본값은 그대로다. `Pipeline(detector, vlm_runner, alert_sender)` 인자를 주지 않으면 YOLOv8, `claude` CLI, Discord를 사용한다.
-
-### 발견한 결함 (실제 실행으로 재현) → 수정
-
-| ID | 결함 | 수정 |
-|---|---|---|
-| U01 | VLM timeout이 지표에 반영되지 않음(`openclaw_timeouts`가 항상 0) | `f20d51f` |
-| U02 / U03 | VLM 프로세스 오류와 응답 파싱 실패가 로그에만 남음. fail-open이라 VLM이 장애 상태여도 "모두 확인됨"과 구분할 수 없음 | `f20d51f` |
-| U04 | `alerts_sent`가 전송 전에 증가해서 Discord 실패를 구분할 수 없음 | `6878cb4` (`alerts_delivered` / `alerts_failed` 추가) |
-| U05 | candidate 큐 포화가 `frames_dropped`로 집계되어 frame_drop_rate를 부풀림 | `2bfced2` (`candidates_dropped`) |
-| U06 | baseline A/B에도 30 s dedup이 적용됨(`baseline.py` 정의와 다름). B 모드에서 5개 탐지에 VLM 1회 | `0d79f2d` |
-
-fail-open 설계 자체는 유지했다. 이번 수정으로 장애가 지표로 보이게 되었다.
-
-### 결과 (2026-10-01, 로컬)
-
-- 테스트 36개, **36 passed**. 10회 연속 실행에서 같은 결과였다.
-- 같은 테스트를 수정 전 코드에 실행하면 11 failed, 25 passed다.
-- Replay benchmark(합성 입력, FakeDetector, 0.2 s fake VLM, 각 3회): proposed는 300 프레임에서 VLM 1회, 경보 1건, E2E 약 208 ms(이 중 200 ms는 fake VLM 지연)였다.
-- U06 수정 후 baseline B에서 candidate 큐가 포화되어 300개 중 247개가 drop되었다. 필터링 없는 구성에서 VLM 단계가 병목이 되는 것을 처음으로 측정했다. 자세한 내용은 [validation/benchmark.md](validation/benchmark.md)에 있다.
-
-실행: `pip install -r requirements-test.txt && python3 -m pytest`
-
-CI(`.github/workflows/test.yml`)는 아직 push하지 않아 **GitHub에서 실행된 기록이 없다.**
-
-### Limitations
-
-- YOLOv8의 정확도와 지연, 실제 VLM의 품질과 지연, Discord 전송, CARLA 입력은 검증하지 않았다.
-- 합성 장면은 단색 박스이므로 실제 영상의 난이도를 반영하지 않는다.
-- README와 코드가 다른 부분이 있다: VLM 호출 조건, timeout 30 s/25 s, Discord 120 s 쿨다운 미구현. 정적으로만 확인했고 수정하지 않았다.
-
-문서: [validation/](validation/) — pipeline_architecture, requirements, failure_model, test_cases, benchmark, traceability_matrix, test_report, limitations
