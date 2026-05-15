@@ -1,0 +1,13 @@
+# Current tests (code at ec519cd) run with --runxfail against commit 312b8a3 (seams added, defects not yet fixed), 2026-10-01
+FAILED tests/integration/test_baseline_modes.py::test_baseline_b_sends_every_detection_to_vlm_without_dedup
+FAILED tests/integration/test_baseline_modes.py::test_baseline_a_sends_every_nth_frame_to_vlm_without_dedup
+FAILED tests/integration/test_pipeline_failures.py::test_vlm_timeout_is_counted
+FAILED tests/integration/test_pipeline_failures.py::test_vlm_process_error_fails_open_and_is_counted
+FAILED tests/integration/test_pipeline_failures.py::test_vlm_malformed_response_fails_open_and_is_counted
+FAILED tests/integration/test_pipeline_failures.py::test_alert_delivery_failure_is_counted
+FAILED tests/integration/test_pipeline_failures.py::test_candidate_queue_overflow_is_not_counted_as_frame_drop
+FAILED tests/integration/test_pipeline_failures.py::test_vlm_broken_json_is_counted_as_parse_failure
+FAILED tests/integration/test_pipeline_failures.py::test_successful_alert_is_counted_as_delivered
+FAILED tests/integration/test_pipeline_failures.py::test_discord_sender_without_token_reports_not_delivered
+FAILED tests/integration/test_pipeline_failures.py::test_discord_sender_http_error_reports_not_delivered
+11 failed, 25 passed in 25.67s
