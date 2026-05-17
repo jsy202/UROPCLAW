@@ -1,0 +1,11 @@
+# Python 3.7 / CARLA 0.9.13 validation environment.
+# PyTorch 1.13.1 is the final PyTorch release supporting Python 3.7.
+--extra-index-url https://download.pytorch.org/whl/cu117
+
+torch==1.13.1+cu117
+torchvision==0.14.1+cu117
+ultralytics==8.0.145
+opencv-python==4.8.1.78
+numpy==1.21.6
+pytest==7.4.4
+requests==2.31.0

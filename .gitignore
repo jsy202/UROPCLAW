@@ -12,6 +12,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+.venv-carla-e2e/
 venv/
 dist/
 build/
@@ -19,6 +20,8 @@ build/
 # YOLO 모델 가중치
 *.pt
 *.onnx
+validation/carla_e2e/weights/
+validation/carla_e2e/runtime/
 
 # 로그
 *.log
