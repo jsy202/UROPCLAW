@@ -26,6 +26,7 @@ validation/carla_e2e/runtime/
 # 로그
 *.log
 logs/
+!validation/carla_e2e/evidence/**/*.log
 
 # 백업
 session-backups/

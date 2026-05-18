@@ -1,0 +1,25 @@
+2026-10-03 Asia/Seoul
+
+Attempt 1:
+  /home/jsy202/carla-0.9.13/CarlaUE4.sh -RenderOffScreen -quality-level=Low -nosound -carla-rpc-port=2000
+Observed output:
+  4.26.2-0+++UE4+Release-4.26 522 0
+  Disabling core dumps.
+Exit status: 1
+RPC port 2000 listening after exit: no
+
+Attempt 2:
+  DISPLAY and XAUTHORITY unset
+  /home/jsy202/carla-0.9.13/CarlaUE4.sh -RenderOffScreen -quality-level=Low -nosound -carla-rpc-port=2000 -log -stdout -FullStdOutLogOutput
+Observed output: none
+Exit status: 1
+RPC port 2000 listening after exit: no
+
+Diagnostics:
+  nvidia-smi succeeded and identified NVIDIA GeForce RTX 3060.
+  xdpyinfo could not open DISPLAY=:0 inside the execution sandbox.
+  ldd reported no missing shared libraries matched by the dependency check.
+  No new CARLA log or crash directory was created by these attempts.
+
+Conclusion:
+  CARLA server startup is BLOCKED in this execution environment. The evidence does not establish a single root cause, so no driver, CUDA, display, or CARLA installation change was attempted.

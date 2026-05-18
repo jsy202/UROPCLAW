@@ -1,0 +1,39 @@
+2026-10-03 Asia/Seoul
+
+Isolation command:
+  /usr/bin/python3.7 -m venv .venv-carla-e2e
+Result:
+  ensurepip unavailable in the host Python 3.7 installation.
+
+Isolated fallback (no system package changes):
+  /usr/bin/python3.7 -m pip --python .venv-carla-e2e install --no-deps /home/jsy202/carla-0.9.13/PythonAPI/carla/dist/carla-0.9.13-cp37-cp37m-manylinux_2_27_x86_64.whl
+Result:
+  Successfully installed carla-0.9.13 into .venv-carla-e2e.
+  sys.prefix=/home/jsy202/validation-work/UROPCLAW-carla-e2e/.venv-carla-e2e
+  sys.base_prefix=/usr
+  client.get_client_version()=0.9.13
+
+AI dependency command:
+  /usr/bin/python3.7 -m pip --python .venv-carla-e2e install -r validation/carla_e2e/requirements-py37.txt
+Indexes attempted:
+  https://pypi.org/simple
+  https://download.pytorch.org/whl/cu117
+Result:
+  Repeated HTTPS connection failures: [Errno -2] Name or service not known.
+  ERROR: Could not find a version that satisfies the requirement torch==1.13.1+cu117 (from versions: none)
+  ERROR: No matching distribution found for torch==1.13.1+cu117
+
+Post-attempt isolated environment:
+  carla=0.9.13
+  torch=NOT_INSTALLED
+  torchvision=NOT_INSTALLED
+  ultralytics=NOT_INSTALLED
+  cv2=NOT_INSTALLED
+  numpy=NOT_INSTALLED
+
+Model search:
+  git history paths: no *.pt, *.onnx, or *.engine
+  /home/jsy202 filesystem: no *.pt, *.onnx, or *.engine
+  no Ultralytics model cache directory found
+
+No global packages, driver, or CUDA toolkit were changed.
