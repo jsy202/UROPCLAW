@@ -1,6 +1,6 @@
 # CARLA E2E Environment
 
-Status: **BLOCKED during dependency installation**
+Status: **CARLA camera smoke PASS; Real YOLO smoke pending host execution**
 
 Observed on 2026-10-03 (Asia/Seoul).
 
@@ -16,8 +16,10 @@ Observed on 2026-10-03 (Asia/Seoul).
 | Validation Python | 3.7.17 in `.venv-carla-e2e` |
 | CARLA server installation | `/home/jsy202/carla-0.9.13`, version 0.9.13 |
 | CARLA Python client source | bundled `carla-0.9.13-cp37-cp37m-manylinux_2_27_x86_64.whl` |
-| `client.get_client_version()` | 0.9.13 (local client object; server connection not established) |
-| `client.get_server_version()` | NOT MEASURED — server did not remain running |
+| `client.get_client_version()` | 0.9.13 |
+| `client.get_server_version()` | 0.9.13 |
+| CARLA world | `Carla/Maps/Town10HD_Opt` |
+| RGB camera smoke | PASS — 10 frames, 800×600, first-frame PNG saved |
 
 No NVIDIA driver, CUDA toolkit, system Python package, or system-wide dependency was installed or changed.
 
@@ -37,7 +39,7 @@ The exact requested packages are recorded in `requirements-py37.txt`. The CARLA 
 
 ## Installation result
 
-The isolated environment and local CARLA 0.9.13 client were created successfully. Ubuntu's Python 3.7 installation has no `ensurepip`, so the already installed user-level pip 24.0 was invoked with pip's `--python .venv-carla-e2e` targeting option; installation still went only into the isolated environment. Installation of PyTorch and the remaining AI dependencies could not reach either PyPI or the official PyTorch wheel index because DNS resolution is unavailable in the execution environment. See `evidence/environment/dependency_install.log`.
+The initial managed-environment installation could not reach either PyPI or the official PyTorch wheel index because DNS resolution was unavailable. The ignored `.venv-carla-e2e` directory was no longer present when work resumed after the host camera smoke, so no installed AI package version is inferred from that earlier attempt. `prepare_host_yolo_env.sh` recreates or reuses only that isolated path from a normal host terminal; it never deletes an existing environment and never installs system-wide packages. See `evidence/environment/dependency_install.log` for the earlier failed attempt.
 
 Consequently these required fields are not measured:
 
@@ -60,8 +62,8 @@ The repository, `/home/jsy202`, pip cache, common model extensions (`*.pt`, `*.o
 
 If network access is restored, this validation must use and disclose: **Post-project CARLA validation used a newly downloaded YOLOv8s pretrained weight because the original research weight was unavailable.** That future weight must remain uncommitted and its SHA-256 must be recorded before a measured run.
 
-## Smoke gate
+## Camera smoke gate
 
-The CARLA executable was also probed with off-screen, low-quality rendering. Both attempts exited with status 1 before opening RPC port 2000 and produced no current CARLA log. The sandbox could query the GPU with `nvidia-smi`, but could not open the current X display; this does not prove that X access caused the off-screen failure. No server connection, world load, or camera callback was claimed.
+The server was started independently in the normal host environment with `-RenderOffScreen -quality-level=Low`. The host runner connected to `127.0.0.1:2000`, observed matching 0.9.13 client/server versions, queried `Town10HD_Opt`, spawned an RGB camera, received ten 800×600 frames, saved a PNG, and destroyed the sensor. The runner returned exit code 0. Raw evidence is under `evidence/host_smoke/`.
 
-The full smoke gate therefore failed before measurement for two independent reasons: unavailable AI packages/weight and a CARLA server process that did not remain running. No CARLA performance or E2E measurements were collected.
+The camera portion of the gate is PASS. The overall Real YOLO gate remains pending until the host installs the pinned AI dependencies, records CUDA/GPU properties and weight checksum, and produces `evidence/yolo_smoke/result.json` with `status=PASS`. No CARLA E2E benchmark measurements have been collected.

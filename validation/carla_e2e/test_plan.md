@@ -4,14 +4,15 @@ The approved protocol is defined in `design.md`. Execution is gated in this orde
 
 | Phase | Planned repetitions | Status |
 |---|---:|---|
-| Smoke | 1 | BLOCKED before server connection and YOLO load |
-| Target + fake VLM/alert | 10 | NOT RUN — smoke gate failed |
-| Non-target + fake VLM/alert | 10 | NOT RUN — smoke gate failed |
-| VLM delay | 3–5 | NOT RUN — smoke gate failed |
-| VLM timeout | 3–5 | NOT RUN — smoke gate failed |
-| VLM error | 3–5 | NOT RUN — smoke gate failed |
-| VLM malformed response | 3–5 | NOT RUN — smoke gate failed |
+| CARLA camera smoke | 1 | PASS — host evidence: matching 0.9.13 versions, world query, 10 RGB frames |
+| Real YOLO one-frame smoke | 1 | PENDING — host dependency setup and CUDA inference required |
+| Target + fake VLM/alert | 10 | NOT RUN — Real YOLO gate pending |
+| Non-target + fake VLM/alert | 10 | NOT RUN — Real YOLO gate pending |
+| VLM delay | 5 | NOT RUN — Real YOLO gate pending |
+| VLM timeout | 5 | NOT RUN — Real YOLO gate pending |
+| VLM error | 5 | NOT RUN — Real YOLO gate pending |
+| VLM malformed response | 5 | NOT RUN — Real YOLO gate pending |
 | One-second final-decision cycle | derived from target cycles | NOT MEASURED |
-| Real VLM + fake alert | up to 5 | BLOCKED — prerequisite smoke failed; no credential change attempted |
+| Real VLM + fake alert | 3–5 | NOT RUN — Real YOLO gate pending; no credential change attempted |
 
-No synthetic result is substituted for a missing CARLA result. A future continuation must first install the pinned dependencies in `.venv-carla-e2e`, obtain and hash the post-project validation weight, start CARLA, and rerun the complete smoke gate.
+No synthetic result is substituted for a missing CARLA or Real YOLO result. The existing host CARLA server must remain running; the next action is to prepare `.venv-carla-e2e`, obtain and hash the post-project validation weight, and run the Real YOLO one-frame smoke. Scenario and fault repetitions remain gated on that result.
