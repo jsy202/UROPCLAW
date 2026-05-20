@@ -1,0 +1,11 @@
+2026-10-03 02:55:26,102 INFO Weight: /home/jsy202/validation-work/UROPCLAW-carla-e2e/validation/carla_e2e/weights/yolov8s.pt sha256=268e5bb54c640c96c3510224833bc2eeacab4135c6deb41502156e39986b562d source=Ultralytics pretrained YOLOv8s asset obtained after the original project
+2026-10-03 02:55:26,122 INFO CUDA available: torch=1.13.1+cu117 torch_cuda=11.7 gpu=NVIDIA GeForce RTX 3060
+2026-10-03 02:55:26,212 INFO Connected to CARLA: client=0.9.13 server=0.9.13 map=Carla/Maps/Town10HD_Opt
+2026-10-03 02:55:26,278 INFO CARLA RGB frame: id=335837 timestamp=2151.465135 shape=[600, 800, 3]
+2026-10-03 02:55:26,318 INFO YOLO model loaded in 39.205 ms
+2026-10-03 02:55:30,295 INFO Inference: device=cuda:0 latency_ms=3806.716 raw_boxes=0 vehicle_detections=0 contract=True
+2026-10-03 02:55:30,295 INFO Stopped RGB camera sensor
+2026-10-03 02:55:30,297 INFO Destroyed RGB camera sensor
+2026-10-03 02:55:30,298 INFO YOLO smoke result=PASS
+2026-10-03 02:55:30,298 INFO Wrote environment evidence to /home/jsy202/validation-work/UROPCLAW-carla-e2e/validation/carla_e2e/evidence/yolo_smoke/environment.json
+2026-10-03 02:55:30,298 INFO Wrote result evidence to /home/jsy202/validation-work/UROPCLAW-carla-e2e/validation/carla_e2e/evidence/yolo_smoke/result.json

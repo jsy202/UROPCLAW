@@ -29,6 +29,7 @@ The script pins these Python 3.7 packages in `.venv-carla-e2e` only:
 - `numpy==1.21.6`
 - `pytest==7.4.4`
 - `requests==2.31.0`
+- `setuptools==68.0.0` (`pkg_resources` compatibility for Ultralytics 8.0.145)
 - bundled CARLA client wheel `0.9.13`
 
 It downloads `yolov8s.pt` only when the ignored file
