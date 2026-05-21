@@ -1,7 +1,7 @@
 from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
-from typing import Literal
+from typing_extensions import Literal
 from pydantic import BaseModel, Field
 
 

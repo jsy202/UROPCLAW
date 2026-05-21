@@ -11,3 +11,4 @@ pytest==7.4.4
 requests==2.31.0
 # Ultralytics 8.0.145 imports the legacy pkg_resources API.
 setuptools==68.0.0
+typing-extensions==4.7.1

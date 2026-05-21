@@ -12,6 +12,8 @@ Usage:
     python3 start.py --target-color blue --bg-count 25 --patrol
 """
 
+from __future__ import annotations
+
 import sys
 import signal
 import logging

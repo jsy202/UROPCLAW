@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """CARLA-OpenClaw Harness — entry point"""
 
+from __future__ import annotations
+
 import sys
 import json
 import signal
