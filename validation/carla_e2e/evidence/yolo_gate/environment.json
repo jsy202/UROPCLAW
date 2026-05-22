@@ -1,0 +1,23 @@
+{
+  "captured_at_utc": "2026-10-02T18:21:18.908827+00:00",
+  "client_version": "0.9.13",
+  "cuda_available": true,
+  "gpu_name": "NVIDIA GeForce RTX 3060",
+  "map_name": "Carla/Maps/Town10HD_Opt",
+  "numpy_version": "1.21.6",
+  "opencv_version": "4.8.1",
+  "python_version": "3.7.17",
+  "server_version": "0.9.13",
+  "system_cuda_or_driver_modified": false,
+  "system_python_modified": false,
+  "torch_cuda_version": "11.7",
+  "torch_version": "1.13.1+cu117",
+  "torchvision_version": "0.14.1+cu117",
+  "ultralytics_version": "8.0.145",
+  "weight_disclosure": "Post-project CARLA validation used a newly obtained pretrained YOLOv8s weight because the original research weight was unavailable.",
+  "weight_filename": "yolov8s.pt",
+  "weight_path": "/home/jsy202/validation-work/UROPCLAW-carla-e2e/validation/carla_e2e/weights/yolov8s.pt",
+  "weight_sha256": "268e5bb54c640c96c3510224833bc2eeacab4135c6deb41502156e39986b562d",
+  "weight_size_bytes": 22573363,
+  "weight_source": "Ultralytics pretrained YOLOv8s asset obtained after the original project"
+}
