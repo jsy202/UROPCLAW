@@ -28,7 +28,7 @@ Additional operational metrics:
 
 ## One-second monitoring boundary
 
-The fixed timing boundary is:
+The fixed timing boundary for a decision-bearing event is:
 
 `successful insertion into pipeline frame queue (host monotonic clock)`
 
@@ -36,19 +36,25 @@ to
 
 `terminal pipeline decision for that frame on the same host monotonic clock`.
 
-For a frame that creates a VLM candidate, the terminal point is the
+For the temporal-confirmation frame that creates a VLM candidate, the terminal point is the
 `AlertPolicy` allow/suppress decision after the VLM response or handled VLM
-failure. For a processed frame that creates no VLM candidate, the terminal
-point is completion of YOLO, HSV, tracking, temporal, and target filtering for
-that frame. Frames dropped as stale or rejected at queue insertion have no
-E2E latency sample and remain visible in the drop metrics.
+failure. When temporal confirmation produces a non-target colour, the terminal
+point is the existing target-colour rejection. Frames that are still building
+the three-frame temporal window, frames with no vehicle detection, frames
+dropped as stale, and frames rejected at queue insertion do not have a final
+event decision and therefore have no E2E sample; their counts remain visible
+in the raw and drop metrics.
 
-Each accepted and processed frame contributes at most one E2E sample. Raw
-evidence retains the acceptance and terminal monotonic timestamps so mean,
+Each confirmed event contributes at most one E2E sample. The source timestamp
+is assigned from the host wall clock immediately before successful input-queue
+insertion and is propagated unchanged by the production pipeline. Raw
+evidence retains the source and terminal timestamps so mean,
 p50, p95, p99, maximum, counts at or below 1,000 ms, counts above 1,000 ms,
-and the compliance rate can be recalculated. `1초 감시 유지` may be stated
-only when measured samples exist and the documented acceptance criterion is
-met; otherwise the result is failed or not measured.
+and the compliance rate can be recalculated. The result therefore characterizes
+decision-bearing event latency, not every accepted camera frame. `1초 감시 유지`
+may be stated only with that scope, when measured samples exist and the
+documented acceptance criterion is met; otherwise the result is failed or not
+measured.
 
 Queue accumulation means the queue depth has a sustained positive trend or
 does not return to its pre-load level before the repetition timeout. A single
