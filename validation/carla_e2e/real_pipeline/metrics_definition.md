@@ -4,9 +4,31 @@ These definitions apply only to measured runs using real CARLA simulation
 frames and Real YOLO. Counts with different units are reported separately and
 must not be presented as a single reduction funnel.
 
+## Frame/image counters
+
+These counters are the only values used for previous-stage retention rates:
+
 | Metric | Unit | Definition |
 |---|---|---|
-| `input_frames` | frame | RGB frames successfully inserted into the pipeline input queue during one repetition. Camera callbacks rejected because the queue is full are excluded here and counted as dropped frames. |
+| `input_frames` | frame | RGB frames successfully inserted into the pipeline input queue during one repetition. |
+| `frames_with_yolo_detection` | frame | Processed frames for which Real YOLO returned at least one retained vehicle-class `Detection`. Multiple boxes still count as one frame. |
+| `frames_passing_hsv` | frame | YOLO-positive frames in which the existing HSV classifier returned at least one supported colour rather than `unknown`. This is colour-classification validity, not mission target-colour equality. |
+| `frames_with_active_track` | frame | YOLO-positive frames for which the existing `IoUTracker.update` result contained at least one track with `disappeared == 0`. |
+| `frames_triggering_confirmation` | frame | Distinct source-frame timestamps on which the existing `TemporalConfirm.update` returned a confirmation. Repeated confirmation of one track on later frames counts as additional trigger frames. |
+| `images_sent_to_vlm` | image | VLM interface calls whose generated prompt referenced a crop file that existed when the injected VLM interface received the call. A request without an image is not counted here. |
+
+Retention is calculated only between adjacent values in this table:
+`current frame/image count / previous frame/image count`. A zero denominator is
+reported as `N/M`, never zero percent. Because the production code classifies
+colour but does not discard `unknown` detections before tracking,
+`frames_passing_hsv` and `frames_with_active_track` are independently observed
+stages rather than an asserted strict subset. Any retention above 100% must be
+reported as observed rather than normalized or hidden.
+
+## Detection/track/event/request counters
+
+| Metric | Unit | Definition |
+|---|---|---|
 | `yolo_detections` | detection box | Sum of vehicle-class `Detection` objects returned for all processed frames. The retained COCO classes are car (2), motorcycle (3), bus (5), and truck (7). Multiple boxes in one frame count separately. |
 | `unique_tracks` | track | Number of distinct `(camera_id, track_id)` identities created by `IoUTracker` during one repetition. Re-observation of an existing or reconnected identity does not increment this count. |
 | `confirmed_tracks` | confirmed track/event | Number of distinct temporal-confirmation outputs produced after the three-frame majority rule and before target-colour suppression. Repeated frames before or after confirmation do not increment this count. |
@@ -25,6 +47,10 @@ Additional operational metrics:
 | `scenario_success` | repetition | Target: at least one target event and successful fake-alert delivery before timeout. Non-target: the run completes with zero target events and zero VLM requests while the configured non-target vehicle is visible in evidence. |
 | `pipeline_alive` | repetition | All pipeline worker threads remain alive until the planned shutdown point. |
 | `recovery` | injected fault | After the injected VLM fault, the same pipeline instance processes the next normal eligible request to its expected terminal decision without a restart. |
+
+Frame/image retention never uses `yolo_detections`, `unique_tracks`,
+`confirmed_tracks`, `vlm_requests`, or `target_events` as a numerator or
+denominator.
 
 ## One-second monitoring boundary
 

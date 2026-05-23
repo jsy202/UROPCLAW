@@ -33,7 +33,9 @@ EXPECTED_CARLA_VERSION = "0.9.13"
 TARGET_CLASSES = {2: "car", 3: "motorcycle", 5: "bus", 7: "truck"}
 RAW_FIELDS = [
     "run_id", "scenario", "repetition", "fault", "status", "input_frames",
-    "camera_frames", "yolo_detections", "hsv_target_passes", "unique_tracks",
+    "camera_frames", "frames_with_yolo_detection", "frames_passing_hsv",
+    "frames_with_active_track", "frames_triggering_confirmation", "images_sent_to_vlm",
+    "yolo_detections", "hsv_target_passes", "unique_tracks",
     "confirmed_tracks", "vlm_requests", "target_events", "false_target_events",
     "scenario_success", "e2e_sample_count", "e2e_mean_ms", "e2e_p50_ms",
     "e2e_p95_ms", "e2e_p99_ms", "e2e_max_ms", "at_or_below_1000",
@@ -89,6 +91,33 @@ def scenario_success(scenario, target_events, vlm_requests, yolo_detections, pip
     return False
 
 
+def frame_metric_summary(counts):
+    pairs = (
+        ("input_to_yolo_retention", "input_frames", "frames_with_yolo_detection"),
+        ("yolo_to_hsv_retention", "frames_with_yolo_detection", "frames_passing_hsv"),
+        ("hsv_to_tracking_retention", "frames_passing_hsv", "frames_with_active_track"),
+        ("tracking_to_confirmation_retention", "frames_with_active_track", "frames_triggering_confirmation"),
+        ("confirmation_to_vlm_retention", "frames_triggering_confirmation", "images_sent_to_vlm"),
+    )
+    result = dict(counts)
+    for metric, previous, current in pairs:
+        denominator = counts[previous]
+        result[metric] = round(counts[current] / float(denominator), 6) if denominator else None
+    return result
+
+
+def _image_was_supplied(kwargs):
+    prompt = kwargs.get("input", b"")
+    if isinstance(prompt, bytes):
+        prompt = prompt.decode("utf-8", errors="replace")
+    prefix = "Analyze the image at "
+    for line in str(prompt).splitlines():
+        if line.startswith(prefix):
+            candidate = line[len(prefix):].rstrip(".")
+            return Path(candidate).is_file()
+    return False
+
+
 def _success_payload():
     return json.dumps({
         "visible_vehicle": True, "color": "blue", "color_match": True,
@@ -102,9 +131,11 @@ class DeterministicVLM:
     def __init__(self):
         self.calls = 0
         self.normal_successes = 0
+        self.images_received = 0
 
     def __call__(self, command, **kwargs):
         self.calls += 1
+        self.images_received += int(_image_was_supplied(kwargs))
         self.normal_successes += 1
         return subprocess.CompletedProcess(command, 0, stdout=_success_payload(), stderr=b"")
 
@@ -120,9 +151,11 @@ class FaultThenSuccessVLM:
         self.calls = 0
         self.injected = 0
         self.normal_successes = 0
+        self.images_received = 0
 
     def __call__(self, command, **kwargs):
         self.calls += 1
+        self.images_received += int(_image_was_supplied(kwargs))
         if self.injected == 0:
             self.injected = 1
             if self.delay_seconds:
@@ -144,12 +177,19 @@ class Observation:
         self.unique_tracks = set()
         self.confirmed_tracks = set()
         self.hsv_target_passes = 0
+        self.frames_passing_hsv = 0
+        self.frames_with_active_track = 0
+        self.confirmation_frame_timestamps = set()
         self.latency_samples = []
         self.latency_keys = set()
         self.latency_rows = []
         self.alert_events = []
         self.accepted_monotonic = {}
         self.lock = threading.Lock()
+
+    @property
+    def frames_triggering_confirmation(self):
+        return len(self.confirmation_frame_timestamps)
 
     def register_acceptance(self, wall_timestamp, monotonic_timestamp):
         with self.lock:
@@ -191,6 +231,7 @@ class RealYoloAdapter:
         self.torch = torch_module
         self.detection_type = detection_type
         self.detection_count = 0
+        self.frames_with_detection = 0
         self.latencies_ms = []
 
     def __call__(self, frame_bgr):
@@ -215,6 +256,8 @@ class RealYoloAdapter:
                     confidence=float(box.conf[0]),
                 ))
         self.detection_count += len(converted)
+        if converted:
+            self.frames_with_detection += 1
         return converted
 
 
@@ -295,6 +338,10 @@ def _make_counting_classes(pipeline_module, observation):
         def update(self, detections, colors=None):
             tracks = super().update(detections, colors)
             with observation.lock:
+                if colors and any(color != "unknown" for color in colors):
+                    observation.frames_passing_hsv += 1
+                if any(track.disappeared == 0 for track in tracks.values()):
+                    observation.frames_with_active_track += 1
                 observation.unique_tracks.update((id(self), tid) for tid in tracks)
             return tracks
 
@@ -306,6 +353,7 @@ def _make_counting_classes(pipeline_module, observation):
                 with observation.lock:
                     is_first = key not in observation.confirmed_tracks
                     observation.confirmed_tracks.add(key)
+                    observation.confirmation_frame_timestamps.add(timestamp)
                 if is_first and result["color"] != observation.target_color:
                     observation.terminal(timestamp, "target_color_reject", track_id)
             return result
@@ -485,6 +533,11 @@ def run_repetition(context, scenario, repetition, fault=None):
         "run_id": run_id, "scenario": scenario, "repetition": repetition,
         "fault": fault or "", "status": "COMPLETE" if error is None and completed else ("TIMEOUT" if error is None else "ERROR"),
         "input_frames": accepted["count"], "camera_frames": accepted["camera"],
+        "frames_with_yolo_detection": adapter.frames_with_detection,
+        "frames_passing_hsv": observation.frames_passing_hsv,
+        "frames_with_active_track": observation.frames_with_active_track,
+        "frames_triggering_confirmation": observation.frames_triggering_confirmation,
+        "images_sent_to_vlm": vlm.images_received,
         "yolo_detections": adapter.detection_count,
         "hsv_target_passes": observation.hsv_target_passes,
         "unique_tracks": len(observation.unique_tracks),
@@ -572,6 +625,80 @@ def _aggregate_faults(rows):
     return output
 
 
+def _aggregate_frame_metrics(rows):
+    output = []
+    metric_fields = (
+        "input_frames", "frames_with_yolo_detection", "frames_passing_hsv",
+        "frames_with_active_track", "frames_triggering_confirmation",
+        "images_sent_to_vlm",
+    )
+    for scenario in ("target", "non_target"):
+        selected = [row for row in rows if row["scenario"] == scenario]
+        if not selected:
+            continue
+        counts = {field: sum(row[field] for row in selected) for field in metric_fields}
+        output.append({
+            "scenario": scenario,
+            "repetitions": len(selected),
+            **frame_metric_summary(counts),
+        })
+    return output
+
+
+def _write_frame_metric_outputs(rows, environment):
+    raw_fields = [
+        "run_id", "scenario", "repetition", "status", "scenario_success",
+        "input_frames", "frames_with_yolo_detection", "frames_passing_hsv",
+        "frames_with_active_track", "frames_triggering_confirmation",
+        "images_sent_to_vlm", "yolo_detections", "unique_tracks",
+        "confirmed_tracks", "vlm_requests", "target_events",
+        "max_queue_depth", "ending_queue_depth", "dropped_frames",
+        "dropped_events", "pipeline_alive", "error",
+    ]
+    _write_csv(HERE / "frame_metrics_raw.csv", raw_fields, rows)
+    summary = _aggregate_frame_metrics(rows)
+    summary_fields = [
+        "scenario", "repetitions", "input_frames", "frames_with_yolo_detection",
+        "frames_passing_hsv", "frames_with_active_track",
+        "frames_triggering_confirmation", "images_sent_to_vlm",
+        "input_to_yolo_retention", "yolo_to_hsv_retention",
+        "hsv_to_tracking_retention", "tracking_to_confirmation_retention",
+        "confirmation_to_vlm_retention",
+    ]
+    _write_csv(HERE / "frame_metrics_summary.csv", summary_fields, summary)
+    _write_json(HERE / "evidence" / "frame_metrics_environment.json", environment)
+    report = [
+        "# Frame-level pipeline metrics", "",
+        "This report is generated from the target/non-target rerun only. Existing E2E latency, success, queue, drop, and fault-validation result files are not overwritten.", "",
+        "| Scenario | Input Frames | YOLO-positive Frames | HSV-pass Frames | Tracking Frames | Confirmation Frames | VLM Images |",
+        "|---|---:|---:|---:|---:|---:|---:|",
+    ]
+    for item in summary:
+        report.append("| {scenario} | {input_frames} | {frames_with_yolo_detection} | {frames_passing_hsv} | {frames_with_active_track} | {frames_triggering_confirmation} | {images_sent_to_vlm} |".format(**item))
+    report.extend([
+        "", "## Previous-stage frame/image retention", "",
+        "| Scenario | Input→YOLO | YOLO→HSV | HSV→Tracking | Tracking→Confirmation | Confirmation→VLM |",
+        "|---|---:|---:|---:|---:|---:|",
+    ])
+    for item in summary:
+        values = {}
+        for key in ("input_to_yolo_retention", "yolo_to_hsv_retention", "hsv_to_tracking_retention", "tracking_to_confirmation_retention", "confirmation_to_vlm_retention"):
+            value = item[key]
+            values[key] = "N/M" if value is None else "{0:.2%}".format(value)
+        report.append("| {0} | {1} | {2} | {3} | {4} | {5} |".format(
+            item["scenario"], values["input_to_yolo_retention"],
+            values["yolo_to_hsv_retention"], values["hsv_to_tracking_retention"],
+            values["tracking_to_confirmation_retention"],
+            values["confirmation_to_vlm_retention"],
+        ))
+    report.extend([
+        "", "All ratios above compare frame/image counts only. Detection, track, event, and request counts remain separate in `frame_metrics_raw.csv` and are not used as retention denominators.",
+        "", "`frames_passing_hsv` means at least one vehicle detection received a supported non-`unknown` colour from the existing HSV classifier. Mission target-colour rejection occurs later in the production flow.",
+        "", "Historical 46,372 / 28,736 / 3,298 / 53 values are not combined with or compared to these measurements.", "",
+    ])
+    (HERE / "frame_metrics_report.md").write_text("\n".join(report), encoding="utf-8")
+
+
 def _write_outputs(rows, latency_rows, environment, np):
     HERE.mkdir(parents=True, exist_ok=True)
     _write_csv(HERE / "raw_results.csv", RAW_FIELDS, rows)
@@ -629,12 +756,13 @@ def parse_args(argv=None):
     parser.add_argument("--frames", type=int, default=10)
     parser.add_argument("--model-warmup", type=int, default=10)
     parser.add_argument("--fault-delay", type=float, default=1.2)
+    parser.add_argument("--frame-metrics-only", action="store_true")
     return parser.parse_args(argv)
 
 
 def main(argv=None):
     args = parse_args(argv)
-    log_path = HERE / "evidence" / "run.log"
+    log_path = HERE / "evidence" / ("frame_metrics_run.log" if args.frame_metrics_only else "run.log")
     log_path.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(
         level=logging.INFO,
@@ -690,7 +818,11 @@ def main(argv=None):
             "weight_source": "Post-project pretrained YOLOv8s; original research weight unavailable",
             "model_warmup_count_excluded": args.model_warmup,
             "model_warmup_latencies_ms": warmup_latencies,
-            "planned_repetitions": args.target_repetitions + args.non_target_repetitions + 4 * args.fault_repetitions,
+            "planned_repetitions": (
+                args.target_repetitions + args.non_target_repetitions
+                if args.frame_metrics_only
+                else args.target_repetitions + args.non_target_repetitions + 4 * args.fault_repetitions
+            ),
         }
         context = {
             "carla": carla, "cv2": cv2, "np": np, "torch": torch,
@@ -704,15 +836,19 @@ def main(argv=None):
         plan = (
             [("target", i, None) for i in range(1, args.target_repetitions + 1)]
             + [("non_target", i, None) for i in range(1, args.non_target_repetitions + 1)]
-            + [("fault", i, fault) for fault in ("delay", "timeout", "error", "malformed") for i in range(1, args.fault_repetitions + 1)]
         )
+        if not args.frame_metrics_only:
+            plan += [("fault", i, fault) for fault in ("delay", "timeout", "error", "malformed") for i in range(1, args.fault_repetitions + 1)]
         for scenario, repetition, fault in plan:
             logging.info("Running %s repetition=%s fault=%s", scenario, repetition, fault or "none")
             row, samples = run_repetition(context, scenario, repetition, fault)
             logging.info("Finished %s status=%s success=%s", row["run_id"], row["status"], row["scenario_success"])
             rows.append(row)
             latency_rows.extend(samples)
-            _write_outputs(rows, latency_rows, environment, np)
+            if args.frame_metrics_only:
+                _write_frame_metric_outputs(rows, environment)
+            else:
+                _write_outputs(rows, latency_rows, environment, np)
         return 0 if all(row["status"] == "COMPLETE" for row in rows) else 1
     except Exception as exc:
         HERE.mkdir(parents=True, exist_ok=True)
