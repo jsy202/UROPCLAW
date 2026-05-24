@@ -1,0 +1,1 @@
+run_id,scenario,repetition,input_frames,frames_with_yolo_detection,frames_passing_hsv,frames_with_active_track,frames_triggering_confirmation,images_sent_to_vlm
