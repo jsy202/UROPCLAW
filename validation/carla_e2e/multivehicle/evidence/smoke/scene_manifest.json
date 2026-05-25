@@ -1,0 +1,1733 @@
+{
+  "actual_spawned_scene": {
+    "actor_counts_after_spawn": {
+      "preexisting_validation_actor_count": 0,
+      "uncontrolled_world_vehicle_count": 0,
+      "world_vehicle_count": 0
+    },
+    "actor_counts_before": {
+      "preexisting_validation_actor_count": 0,
+      "uncontrolled_world_vehicle_count": 0,
+      "world_vehicle_count": 0
+    },
+    "camera": {
+      "actor_id": 124,
+      "fov": 90,
+      "height": 600,
+      "sensor_tick": 0.1,
+      "transform": {
+        "location": {
+          "x": 101.05154418945312,
+          "y": 146.9678192138672,
+          "z": 8.0
+        },
+        "rotation": {
+          "pitch": -23.962491989135742,
+          "roll": 0.0,
+          "yaw": -127.41075134277344
+        }
+      },
+      "width": 800
+    },
+    "controlled_vehicle_count": 16,
+    "vehicles": [
+      {
+        "actor_id": 108,
+        "blueprint": "vehicle.mercedes.sprinter",
+        "color": "255,255,255",
+        "kind": "background",
+        "route": [],
+        "slot": "background-00",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 55.54227828979492,
+            "y": 130.46006774902344,
+            "z": 0.6000292897224426
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.67953491210938
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 109,
+        "blueprint": "vehicle.jeep.wrangler_rubicon",
+        "color": "255,0,0",
+        "kind": "background",
+        "route": [],
+        "slot": "background-01",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 53.122718811035156,
+            "y": 133.94662475585938,
+            "z": 0.6000292897224426
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.67953491210938
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 110,
+        "blueprint": "vehicle.dodge.charger_police_2020",
+        "color": "255,255,0",
+        "kind": "background",
+        "route": [],
+        "slot": "background-02",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 106.00283813476562,
+            "y": 92.81285095214844,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -89.6092529296875
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 111,
+        "blueprint": "vehicle.nissan.patrol",
+        "color": "10,10,10",
+        "kind": "background",
+        "route": [],
+        "slot": "background-03",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 45.76567459106445,
+            "y": 137.4599609375,
+            "z": 0.6000009179115295
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 0.32044798135757446
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 112,
+        "blueprint": "vehicle.tesla.model3",
+        "color": "0,200,0",
+        "kind": "background",
+        "route": [],
+        "slot": "background-04",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 109.52326965332031,
+            "y": 89.83672332763672,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -89.6092529296875
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 113,
+        "blueprint": "vehicle.chevrolet.impala",
+        "color": "150,150,150",
+        "kind": "background",
+        "route": [],
+        "slot": "background-05",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 98.8006591796875,
+            "y": 82.8908462524414,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 90.39070892333984
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 114,
+        "blueprint": "vehicle.carlamotors.firetruck",
+        "color": "255,140,0",
+        "kind": "background",
+        "route": [],
+        "slot": "background-06",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 102.31767272949219,
+            "y": 80.41472625732422,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 90.39070892333984
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 115,
+        "blueprint": "vehicle.ford.crown",
+        "color": "255,255,255",
+        "kind": "background",
+        "route": [],
+        "slot": "background-07",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 32.33772277832031,
+            "y": 130.46006774902344,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.67953491210938
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 116,
+        "blueprint": "vehicle.ford.ambulance",
+        "color": "255,0,0",
+        "kind": "background",
+        "route": [],
+        "slot": "background-08",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 30.018199920654297,
+            "y": 133.94720458984375,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.67953491210938
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 117,
+        "blueprint": "vehicle.lincoln.mkz_2017",
+        "color": "255,255,0",
+        "kind": "background",
+        "route": [],
+        "slot": "background-09",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 79.05529022216797,
+            "y": 69.8227767944336,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 0.07327299565076828
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 118,
+        "blueprint": "vehicle.dodge.charger_police",
+        "color": "10,10,10",
+        "kind": "background",
+        "route": [],
+        "slot": "background-10",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 109.50276184082031,
+            "y": 71.24378967285156,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -89.6092529296875
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 119,
+        "blueprint": "vehicle.seat.leon",
+        "color": "0,200,0",
+        "kind": "background",
+        "route": [],
+        "slot": "background-11",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 85.98224639892578,
+            "y": 66.35848999023438,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.92672729492188
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 120,
+        "blueprint": "vehicle.volkswagen.t2_2021",
+        "color": "150,150,150",
+        "kind": "background",
+        "route": [],
+        "slot": "background-12",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 67.65974426269531,
+            "y": 69.8227767944336,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 0.07327299565076828
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 121,
+        "blueprint": "vehicle.mini.cooper_s_2021",
+        "color": "255,140,0",
+        "kind": "background",
+        "route": [],
+        "slot": "background-13",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 106.02881622314453,
+            "y": 67.41998291015625,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -89.6092529296875
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 122,
+        "blueprint": "vehicle.lincoln.mkz_2020",
+        "color": "255,255,255",
+        "kind": "background",
+        "route": [],
+        "slot": "background-14",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 73.63292694091797,
+            "y": 66.35848999023438,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.92672729492188
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "actor_id": 123,
+        "blueprint": "vehicle.tesla.model3",
+        "color": "0,0,255",
+        "kind": "probe",
+        "route": [
+          {
+            "x": 48.54537582397461,
+            "y": 141.12330627441406,
+            "z": 0.0
+          },
+          {
+            "x": 50.545345306396484,
+            "y": 141.13449096679688,
+            "z": 0.0
+          },
+          {
+            "x": 52.54531478881836,
+            "y": 141.1456756591797,
+            "z": 0.0
+          },
+          {
+            "x": 54.545284271240234,
+            "y": 141.15687561035156,
+            "z": 0.0
+          },
+          {
+            "x": 56.54525375366211,
+            "y": 141.16806030273438,
+            "z": 0.0
+          },
+          {
+            "x": 58.545223236083984,
+            "y": 141.1792449951172,
+            "z": 0.0
+          },
+          {
+            "x": 60.54519271850586,
+            "y": 141.1904296875,
+            "z": 0.0
+          },
+          {
+            "x": 62.5451545715332,
+            "y": 141.2016143798828,
+            "z": 0.0
+          },
+          {
+            "x": 64.54512023925781,
+            "y": 141.21279907226562,
+            "z": 0.0
+          },
+          {
+            "x": 66.81855010986328,
+            "y": 141.1688995361328,
+            "z": 0.0
+          },
+          {
+            "x": 69.10134887695312,
+            "y": 140.99925231933594,
+            "z": 0.0
+          },
+          {
+            "x": 71.37133026123047,
+            "y": 140.7041015625,
+            "z": 0.0
+          },
+          {
+            "x": 73.62159729003906,
+            "y": 140.28431701660156,
+            "z": 0.0
+          },
+          {
+            "x": 75.84532165527344,
+            "y": 139.7412109375,
+            "z": 0.0
+          },
+          {
+            "x": 78.03575897216797,
+            "y": 139.07644653320312,
+            "z": 0.0
+          },
+          {
+            "x": 80.18624114990234,
+            "y": 138.29197692871094,
+            "z": 0.0
+          },
+          {
+            "x": 82.29022979736328,
+            "y": 137.39022827148438,
+            "z": 0.0
+          },
+          {
+            "x": 84.34135437011719,
+            "y": 136.37396240234375,
+            "z": 0.0
+          },
+          {
+            "x": 86.3333740234375,
+            "y": 135.24623107910156,
+            "z": 0.0
+          },
+          {
+            "x": 88.26023864746094,
+            "y": 134.0104522705078,
+            "z": 0.0
+          },
+          {
+            "x": 90.11609649658203,
+            "y": 132.67041015625,
+            "z": 0.0
+          },
+          {
+            "x": 91.89530944824219,
+            "y": 131.2301483154297,
+            "z": 0.0
+          },
+          {
+            "x": 93.59246826171875,
+            "y": 129.69406127929688,
+            "z": 0.0
+          },
+          {
+            "x": 95.20243835449219,
+            "y": 128.06680297851562,
+            "z": 0.0
+          },
+          {
+            "x": 96.72029876708984,
+            "y": 126.35332489013672,
+            "z": 0.0
+          },
+          {
+            "x": 98.11201477050781,
+            "y": 124.61396789550781,
+            "z": 0.0
+          },
+          {
+            "x": 99.4234619140625,
+            "y": 122.8282470703125,
+            "z": 0.0
+          },
+          {
+            "x": 100.66045379638672,
+            "y": 120.99015808105469,
+            "z": 0.0
+          },
+          {
+            "x": 101.82089233398438,
+            "y": 119.10281372070312,
+            "z": 0.0
+          },
+          {
+            "x": 102.90283203125,
+            "y": 117.16938781738281,
+            "z": 0.0
+          },
+          {
+            "x": 103.9044418334961,
+            "y": 115.19316101074219,
+            "z": 0.0
+          },
+          {
+            "x": 104.82401275634766,
+            "y": 113.17745208740234,
+            "z": 0.0
+          },
+          {
+            "x": 105.6600112915039,
+            "y": 111.12567138671875,
+            "z": 0.0
+          },
+          {
+            "x": 106.4110336303711,
+            "y": 109.0412826538086,
+            "z": 0.0
+          },
+          {
+            "x": 107.0758056640625,
+            "y": 106.92780303955078,
+            "z": 0.0
+          },
+          {
+            "x": 107.65319061279297,
+            "y": 104.7887954711914,
+            "z": 0.0
+          },
+          {
+            "x": 108.14221954345703,
+            "y": 102.62788391113281,
+            "z": 0.0
+          },
+          {
+            "x": 108.54208374023438,
+            "y": 100.4487075805664,
+            "z": 0.0
+          },
+          {
+            "x": 108.85208892822266,
+            "y": 98.25494384765625,
+            "z": 0.0
+          },
+          {
+            "x": 109.07171630859375,
+            "y": 96.05029296875,
+            "z": 0.0
+          },
+          {
+            "x": 109.20060729980469,
+            "y": 93.83849334716797,
+            "z": 0.0
+          }
+        ],
+        "slot": "probe",
+        "spawn_attempt": 1,
+        "spawn_transform": {
+          "location": {
+            "x": 48.546077728271484,
+            "y": 140.9755401611328,
+            "z": 0.6000009179115295
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 0.32044798135757446
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 1.0,
+          "ignore_lights": 100.0,
+          "speed_difference": -20.0
+        }
+      }
+    ]
+  },
+  "parity_validation": {
+    "allowed_difference": "planned probe color only",
+    "non_target_probe_color": "255,0,0",
+    "status": "PASS"
+  },
+  "planned_scene": {
+    "camera": {
+      "fov": 90,
+      "height": 600,
+      "sensor_tick": 0.1,
+      "transform": {
+        "location": {
+          "x": 101.05154418945312,
+          "y": 146.9678192138672,
+          "z": 8.0
+        },
+        "rotation": {
+          "pitch": -23.962491989135742,
+          "roll": 0.0,
+          "yaw": -127.41075134277344
+        }
+      },
+      "width": 800
+    },
+    "corridor": {
+      "observation_transform": {
+        "location": {
+          "x": 90.11609649658203,
+          "y": 132.67041015625,
+          "z": 0.0
+        },
+        "rotation": {
+          "pitch": 0.0,
+          "roll": 0.0,
+          "yaw": -37.410762786865234
+        }
+      },
+      "probe_route": [
+        {
+          "x": 48.54537582397461,
+          "y": 141.12330627441406,
+          "z": 0.0
+        },
+        {
+          "x": 50.545345306396484,
+          "y": 141.13449096679688,
+          "z": 0.0
+        },
+        {
+          "x": 52.54531478881836,
+          "y": 141.1456756591797,
+          "z": 0.0
+        },
+        {
+          "x": 54.545284271240234,
+          "y": 141.15687561035156,
+          "z": 0.0
+        },
+        {
+          "x": 56.54525375366211,
+          "y": 141.16806030273438,
+          "z": 0.0
+        },
+        {
+          "x": 58.545223236083984,
+          "y": 141.1792449951172,
+          "z": 0.0
+        },
+        {
+          "x": 60.54519271850586,
+          "y": 141.1904296875,
+          "z": 0.0
+        },
+        {
+          "x": 62.5451545715332,
+          "y": 141.2016143798828,
+          "z": 0.0
+        },
+        {
+          "x": 64.54512023925781,
+          "y": 141.21279907226562,
+          "z": 0.0
+        },
+        {
+          "x": 66.81855010986328,
+          "y": 141.1688995361328,
+          "z": 0.0
+        },
+        {
+          "x": 69.10134887695312,
+          "y": 140.99925231933594,
+          "z": 0.0
+        },
+        {
+          "x": 71.37133026123047,
+          "y": 140.7041015625,
+          "z": 0.0
+        },
+        {
+          "x": 73.62159729003906,
+          "y": 140.28431701660156,
+          "z": 0.0
+        },
+        {
+          "x": 75.84532165527344,
+          "y": 139.7412109375,
+          "z": 0.0
+        },
+        {
+          "x": 78.03575897216797,
+          "y": 139.07644653320312,
+          "z": 0.0
+        },
+        {
+          "x": 80.18624114990234,
+          "y": 138.29197692871094,
+          "z": 0.0
+        },
+        {
+          "x": 82.29022979736328,
+          "y": 137.39022827148438,
+          "z": 0.0
+        },
+        {
+          "x": 84.34135437011719,
+          "y": 136.37396240234375,
+          "z": 0.0
+        },
+        {
+          "x": 86.3333740234375,
+          "y": 135.24623107910156,
+          "z": 0.0
+        },
+        {
+          "x": 88.26023864746094,
+          "y": 134.0104522705078,
+          "z": 0.0
+        },
+        {
+          "x": 90.11609649658203,
+          "y": 132.67041015625,
+          "z": 0.0
+        },
+        {
+          "x": 91.89530944824219,
+          "y": 131.2301483154297,
+          "z": 0.0
+        },
+        {
+          "x": 93.59246826171875,
+          "y": 129.69406127929688,
+          "z": 0.0
+        },
+        {
+          "x": 95.20243835449219,
+          "y": 128.06680297851562,
+          "z": 0.0
+        },
+        {
+          "x": 96.72029876708984,
+          "y": 126.35332489013672,
+          "z": 0.0
+        },
+        {
+          "x": 98.11201477050781,
+          "y": 124.61396789550781,
+          "z": 0.0
+        },
+        {
+          "x": 99.4234619140625,
+          "y": 122.8282470703125,
+          "z": 0.0
+        },
+        {
+          "x": 100.66045379638672,
+          "y": 120.99015808105469,
+          "z": 0.0
+        },
+        {
+          "x": 101.82089233398438,
+          "y": 119.10281372070312,
+          "z": 0.0
+        },
+        {
+          "x": 102.90283203125,
+          "y": 117.16938781738281,
+          "z": 0.0
+        },
+        {
+          "x": 103.9044418334961,
+          "y": 115.19316101074219,
+          "z": 0.0
+        },
+        {
+          "x": 104.82401275634766,
+          "y": 113.17745208740234,
+          "z": 0.0
+        },
+        {
+          "x": 105.6600112915039,
+          "y": 111.12567138671875,
+          "z": 0.0
+        },
+        {
+          "x": 106.4110336303711,
+          "y": 109.0412826538086,
+          "z": 0.0
+        },
+        {
+          "x": 107.0758056640625,
+          "y": 106.92780303955078,
+          "z": 0.0
+        },
+        {
+          "x": 107.65319061279297,
+          "y": 104.7887954711914,
+          "z": 0.0
+        },
+        {
+          "x": 108.14221954345703,
+          "y": 102.62788391113281,
+          "z": 0.0
+        },
+        {
+          "x": 108.54208374023438,
+          "y": 100.4487075805664,
+          "z": 0.0
+        },
+        {
+          "x": 108.85208892822266,
+          "y": 98.25494384765625,
+          "z": 0.0
+        },
+        {
+          "x": 109.07171630859375,
+          "y": 96.05029296875,
+          "z": 0.0
+        },
+        {
+          "x": 109.20060729980469,
+          "y": 93.83849334716797,
+          "z": 0.0
+        }
+      ]
+    },
+    "map": "Carla/Maps/Town10HD_Opt",
+    "planned_background_vehicle_count": 15,
+    "planned_controlled_vehicle_count": 16,
+    "planned_probe_vehicle_count": 1,
+    "seed": 42,
+    "traffic_manager": {
+      "fixed_delta_seconds": 0.1,
+      "port": 8000,
+      "random_seed": 42,
+      "synchronous_mode": true
+    },
+    "vehicles": [
+      {
+        "blueprint": "vehicle.mercedes.sprinter",
+        "color": "255,255,255",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 21.630592346191406,
+              "y": 140.97271728515625,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": 0.32044798135757446
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-00",
+        "spawn_transform": {
+          "location": {
+            "x": 55.54227828979492,
+            "y": 130.46006774902344,
+            "z": 0.6000292897224426
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.67953491210938
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.jeep.wrangler_rubicon",
+        "color": "255,0,0",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 19.35021209716797,
+              "y": 137.4599609375,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": 0.32044798135757446
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-01",
+        "spawn_transform": {
+          "location": {
+            "x": 53.122718811035156,
+            "y": 133.94662475585938,
+            "z": 0.6000292897224426
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.67953491210938
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.dodge.charger_police_2020",
+        "color": "255,255,0",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 61.60259246826172,
+              "y": 66.35848999023438,
+              "z": 0.5999987721443176
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": -179.92672729492188
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-02",
+        "spawn_transform": {
+          "location": {
+            "x": 106.00283813476562,
+            "y": 92.81285095214844,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -89.6092529296875
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.nissan.patrol",
+        "color": "10,10,10",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 52.78997039794922,
+              "y": 69.8227767944336,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": 0.07327299565076828
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-03",
+        "spawn_transform": {
+          "location": {
+            "x": 45.76567459106445,
+            "y": 137.4599609375,
+            "z": 0.6000009179115295
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 0.32044798135757446
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.tesla.model3",
+        "color": "0,200,0",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 109.50276184082031,
+              "y": 53.29315185546875,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": -89.6092529296875
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-04",
+        "spawn_transform": {
+          "location": {
+            "x": 109.52326965332031,
+            "y": 89.83672332763672,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -89.6092529296875
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.chevrolet.impala",
+        "color": "150,150,150",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 106.01924896240234,
+              "y": 50.86931228637695,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": -89.6092529296875
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-05",
+        "spawn_transform": {
+          "location": {
+            "x": 98.8006591796875,
+            "y": 82.8908462524414,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 90.39070892333984
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.carlamotors.firetruck",
+        "color": "255,140,0",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 5.62622594833374,
+              "y": 133.72601318359375,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": -179.6478271484375
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-06",
+        "spawn_transform": {
+          "location": {
+            "x": 102.31767272949219,
+            "y": 80.41472625732422,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 90.39070892333984
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.ford.crown",
+        "color": "255,255,255",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 3.0477840900421143,
+              "y": 130.21006774902344,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": -179.6478271484375
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-07",
+        "spawn_transform": {
+          "location": {
+            "x": 32.33772277832031,
+            "y": 130.46006774902344,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.67953491210938
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.ford.ambulance",
+        "color": "255,0,0",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 102.56617736816406,
+              "y": 43.965667724609375,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": 90.39070892333984
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-08",
+        "spawn_transform": {
+          "location": {
+            "x": 30.018199920654297,
+            "y": 133.94720458984375,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.67953491210938
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.lincoln.mkz_2017",
+        "color": "255,255,0",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 99.07855987548828,
+              "y": 42.14179992675781,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": 90.39070892333984
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-09",
+        "spawn_transform": {
+          "location": {
+            "x": 79.05529022216797,
+            "y": 69.8227767944336,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 0.07327299565076828
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.dodge.charger_police",
+        "color": "10,10,10",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 27.14229393005371,
+              "y": 66.28325653076172,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": -179.92672729492188
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-10",
+        "spawn_transform": {
+          "location": {
+            "x": 109.50276184082031,
+            "y": 71.24378967285156,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -89.6092529296875
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.seat.leon",
+        "color": "0,200,0",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 44.02894973754883,
+              "y": 52.54869842529297,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": -90.75109100341797
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-11",
+        "spawn_transform": {
+          "location": {
+            "x": 85.98224639892578,
+            "y": 66.35848999023438,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.92672729492188
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.volkswagen.t2_2021",
+        "color": "150,150,150",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": -6.554497718811035,
+              "y": 137.2259521484375,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": 0.35211899876594543
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-12",
+        "spawn_transform": {
+          "location": {
+            "x": 67.65974426269531,
+            "y": 69.8227767944336,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 0.07327299565076828
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.mini.cooper_s_2021",
+        "color": "255,140,0",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 14.130091667175293,
+              "y": 69.71400451660156,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": 0.07327299565076828
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-13",
+        "spawn_transform": {
+          "location": {
+            "x": 106.02881622314453,
+            "y": 67.41998291015625,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -89.6092529296875
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.lincoln.mkz_2020",
+        "color": "255,255,255",
+        "kind": "background",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": -9.175959587097168,
+              "y": 140.70989990234375,
+              "z": 0.5999999642372131
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": 0.35211899876594543
+            }
+          }
+        ],
+        "route": [],
+        "slot": "background-14",
+        "spawn_transform": {
+          "location": {
+            "x": 73.63292694091797,
+            "y": 66.35848999023438,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": -179.92672729492188
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 2.0,
+          "ignore_lights": 0.0,
+          "speed_difference": 0.0
+        }
+      },
+      {
+        "blueprint": "vehicle.tesla.model3",
+        "color": "0,0,255",
+        "kind": "probe",
+        "retry_transforms": [
+          {
+            "location": {
+              "x": 48.546077728271484,
+              "y": 140.9755401611328,
+              "z": 0.6000009179115295
+            },
+            "rotation": {
+              "pitch": 0.0,
+              "roll": 0.0,
+              "yaw": 0.32044798135757446
+            }
+          }
+        ],
+        "route": [
+          {
+            "x": 48.54537582397461,
+            "y": 141.12330627441406,
+            "z": 0.0
+          },
+          {
+            "x": 50.545345306396484,
+            "y": 141.13449096679688,
+            "z": 0.0
+          },
+          {
+            "x": 52.54531478881836,
+            "y": 141.1456756591797,
+            "z": 0.0
+          },
+          {
+            "x": 54.545284271240234,
+            "y": 141.15687561035156,
+            "z": 0.0
+          },
+          {
+            "x": 56.54525375366211,
+            "y": 141.16806030273438,
+            "z": 0.0
+          },
+          {
+            "x": 58.545223236083984,
+            "y": 141.1792449951172,
+            "z": 0.0
+          },
+          {
+            "x": 60.54519271850586,
+            "y": 141.1904296875,
+            "z": 0.0
+          },
+          {
+            "x": 62.5451545715332,
+            "y": 141.2016143798828,
+            "z": 0.0
+          },
+          {
+            "x": 64.54512023925781,
+            "y": 141.21279907226562,
+            "z": 0.0
+          },
+          {
+            "x": 66.81855010986328,
+            "y": 141.1688995361328,
+            "z": 0.0
+          },
+          {
+            "x": 69.10134887695312,
+            "y": 140.99925231933594,
+            "z": 0.0
+          },
+          {
+            "x": 71.37133026123047,
+            "y": 140.7041015625,
+            "z": 0.0
+          },
+          {
+            "x": 73.62159729003906,
+            "y": 140.28431701660156,
+            "z": 0.0
+          },
+          {
+            "x": 75.84532165527344,
+            "y": 139.7412109375,
+            "z": 0.0
+          },
+          {
+            "x": 78.03575897216797,
+            "y": 139.07644653320312,
+            "z": 0.0
+          },
+          {
+            "x": 80.18624114990234,
+            "y": 138.29197692871094,
+            "z": 0.0
+          },
+          {
+            "x": 82.29022979736328,
+            "y": 137.39022827148438,
+            "z": 0.0
+          },
+          {
+            "x": 84.34135437011719,
+            "y": 136.37396240234375,
+            "z": 0.0
+          },
+          {
+            "x": 86.3333740234375,
+            "y": 135.24623107910156,
+            "z": 0.0
+          },
+          {
+            "x": 88.26023864746094,
+            "y": 134.0104522705078,
+            "z": 0.0
+          },
+          {
+            "x": 90.11609649658203,
+            "y": 132.67041015625,
+            "z": 0.0
+          },
+          {
+            "x": 91.89530944824219,
+            "y": 131.2301483154297,
+            "z": 0.0
+          },
+          {
+            "x": 93.59246826171875,
+            "y": 129.69406127929688,
+            "z": 0.0
+          },
+          {
+            "x": 95.20243835449219,
+            "y": 128.06680297851562,
+            "z": 0.0
+          },
+          {
+            "x": 96.72029876708984,
+            "y": 126.35332489013672,
+            "z": 0.0
+          },
+          {
+            "x": 98.11201477050781,
+            "y": 124.61396789550781,
+            "z": 0.0
+          },
+          {
+            "x": 99.4234619140625,
+            "y": 122.8282470703125,
+            "z": 0.0
+          },
+          {
+            "x": 100.66045379638672,
+            "y": 120.99015808105469,
+            "z": 0.0
+          },
+          {
+            "x": 101.82089233398438,
+            "y": 119.10281372070312,
+            "z": 0.0
+          },
+          {
+            "x": 102.90283203125,
+            "y": 117.16938781738281,
+            "z": 0.0
+          },
+          {
+            "x": 103.9044418334961,
+            "y": 115.19316101074219,
+            "z": 0.0
+          },
+          {
+            "x": 104.82401275634766,
+            "y": 113.17745208740234,
+            "z": 0.0
+          },
+          {
+            "x": 105.6600112915039,
+            "y": 111.12567138671875,
+            "z": 0.0
+          },
+          {
+            "x": 106.4110336303711,
+            "y": 109.0412826538086,
+            "z": 0.0
+          },
+          {
+            "x": 107.0758056640625,
+            "y": 106.92780303955078,
+            "z": 0.0
+          },
+          {
+            "x": 107.65319061279297,
+            "y": 104.7887954711914,
+            "z": 0.0
+          },
+          {
+            "x": 108.14221954345703,
+            "y": 102.62788391113281,
+            "z": 0.0
+          },
+          {
+            "x": 108.54208374023438,
+            "y": 100.4487075805664,
+            "z": 0.0
+          },
+          {
+            "x": 108.85208892822266,
+            "y": 98.25494384765625,
+            "z": 0.0
+          },
+          {
+            "x": 109.07171630859375,
+            "y": 96.05029296875,
+            "z": 0.0
+          },
+          {
+            "x": 109.20060729980469,
+            "y": 93.83849334716797,
+            "z": 0.0
+          }
+        ],
+        "slot": "probe",
+        "spawn_transform": {
+          "location": {
+            "x": 48.546077728271484,
+            "y": 140.9755401611328,
+            "z": 0.6000009179115295
+          },
+          "rotation": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 0.32044798135757446
+          }
+        },
+        "tm": {
+          "distance_to_leading_vehicle": 1.0,
+          "ignore_lights": 100.0,
+          "speed_difference": -20.0
+        }
+      }
+    ]
+  },
+  "scenario": "target",
+  "schema_version": 1
+}

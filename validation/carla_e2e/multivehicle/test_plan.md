@@ -7,11 +7,15 @@
 3. Enable synchronous 0.1-second ticks and Traffic Manager seed 42.
 4. Plan and spawn exactly fifteen background actors plus one blue probe.
 5. Spawn the fixed 800x600, 90-degree CCTV.
-6. Run fifty pre-roll ticks; use ten real pre-roll frames for YOLO warm-up.
-7. Start the probe route and accept exactly 100 measured frames.
-8. Run the injected production pipeline with Real YOLO, existing HSV/tracker/
+6. Pass a camera readiness gate by matching a synchronous tick frame ID to an
+   RGB sensor frame ID. Up to ten bounded readiness ticks are allowed.
+7. Run fifty pre-roll ticks; match every tick ID to its sensor frame and use ten
+   real pre-roll frames for YOLO warm-up.
+8. Start the probe route and accept exactly 100 measured frames.
+9. Run the injected production pipeline with Real YOLO, existing HSV/tracker/
    temporal/deduplication, deterministic Fake VLM, and Fake Alert.
-9. Drain queues, evaluate every smoke gate, destroy owned actors, and restore
+10. Drain queues, evaluate every smoke gate, stop the camera callback/sensor,
+   destroy owned actors, and restore
    world/TM mode.
 
 The runner exits zero only when every gate in `scenario_design.md` passes.
