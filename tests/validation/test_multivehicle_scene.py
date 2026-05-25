@@ -93,15 +93,21 @@ class Actor:
 
 
 class Settings:
-    def __init__(self, synchronous_mode=False, fixed_delta_seconds=None):
+    def __init__(self, synchronous_mode=False, fixed_delta_seconds=None, no_rendering_mode=False):
         self.synchronous_mode = synchronous_mode
         self.fixed_delta_seconds = fixed_delta_seconds
+        self.no_rendering_mode = no_rendering_mode
+
+
+class NonCopyableSettings(Settings):
+    def __reduce_ex__(self, protocol):
+        raise RuntimeError('Pickling of "carla.libcarla.WorldSettings" instances is not enabled')
 
 
 class World:
-    def __init__(self, failure_slots=None):
+    def __init__(self, failure_slots=None, settings=None):
         self.library = Library()
-        self.settings = Settings(False, None)
+        self.settings = settings or Settings(False, None)
         self.applied = []
         self.failure_slots = set(failure_slots or [])
         self.spawn_calls = 0
@@ -221,6 +227,31 @@ def test_synchronous_mode_restores_world_and_disables_tm_on_exit():
 
     assert world.settings.synchronous_mode is False
     assert world.settings.fixed_delta_seconds is None
+    assert tm.sync == [True, False]
+
+
+def test_synchronous_mode_does_not_copy_world_settings_and_restores_after_exception():
+    module = load_module()
+    settings = NonCopyableSettings(
+        synchronous_mode=False,
+        fixed_delta_seconds=0.05,
+        no_rendering_mode=True,
+    )
+    world = World(settings=settings)
+    tm = TrafficManager()
+
+    with pytest.raises(ValueError, match="injected body failure"):
+        with module.synchronous_mode(world, tm, seed=42, fixed_delta_seconds=0.1):
+            assert world.settings is settings
+            assert world.settings.synchronous_mode is True
+            assert world.settings.fixed_delta_seconds == 0.1
+            assert world.settings.no_rendering_mode is True
+            raise ValueError("injected body failure")
+
+    assert world.settings is settings
+    assert world.settings.synchronous_mode is False
+    assert world.settings.fixed_delta_seconds == 0.05
+    assert world.settings.no_rendering_mode is True
     assert tm.sync == [True, False]
 
 
