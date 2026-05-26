@@ -31,6 +31,7 @@ def test_cli_defaults_are_the_approved_smoke_contract():
     assert args.height == 600
     assert args.fov == 90.0
     assert not hasattr(args, "repetitions")
+    assert args.cleanup_stale_validation_actors is False
 
 
 @pytest.mark.parametrize(
@@ -214,3 +215,40 @@ def test_sensor_timeout_cleanup_stops_camera_before_destroying_owned_actors():
 
     assert result["destroyed"] == 2
     assert events == ["camera_stop", "camera_destroy", "vehicle_destroy"]
+
+
+def test_stale_recovery_destroys_only_explicit_validation_role_actors():
+    runner = load_runner()
+
+    class Actor:
+        def __init__(self, actor_id, role):
+            self.id = actor_id
+            self.attributes = {"role_name": role}
+            self.destroyed = False
+
+        def destroy(self):
+            self.destroyed = True
+            return True
+
+    controlled = Actor(1, "uropclaw_validation_background-00")
+    uncontrolled = Actor(2, "autopilot")
+
+    result = runner.cleanup_stale_validation_actors(
+        [controlled, uncontrolled], enabled=True
+    )
+
+    assert result["matched_actor_ids"] == [1]
+    assert result["destroyed"] == 1
+    assert controlled.destroyed is True
+    assert uncontrolled.destroyed is False
+
+
+def test_stale_recovery_requires_explicit_cli_authorization():
+    runner = load_runner()
+
+    class Actor:
+        id = 1
+        attributes = {"role_name": "uropclaw_validation_probe"}
+
+    with pytest.raises(RuntimeError, match="--cleanup-stale-validation-actors"):
+        runner.cleanup_stale_validation_actors([Actor()], enabled=False)

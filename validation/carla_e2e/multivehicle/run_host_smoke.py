@@ -60,6 +60,7 @@ def parse_args(argv=None):
     parser.add_argument("--model-warmup", type=int, default=10)
     parser.add_argument("--weight", type=Path, default=DEFAULT_WEIGHT)
     parser.add_argument("--evidence-dir", type=Path, default=EVIDENCE_DIR)
+    parser.add_argument("--cleanup-stale-validation-actors", action="store_true")
     return parser.parse_args(argv)
 
 
@@ -388,6 +389,33 @@ def _vehicle_counts(world):
     }
 
 
+def cleanup_stale_validation_actors(actors, enabled=False):
+    matched = []
+    for actor in actors:
+        try:
+            role = actor.attributes.get("role_name", "")
+        except Exception:
+            role = ""
+        if role.startswith("uropclaw_validation_"):
+            matched.append(actor)
+    matched_ids = [int(actor.id) for actor in matched]
+    if matched and not enabled:
+        raise RuntimeError(
+            "stale validation actors found ({0}); rerun with "
+            "--cleanup-stale-validation-actors to destroy only these role-tagged actors".format(
+                matched_ids
+            )
+        )
+    result = cleanup_owned_actors(matched) if matched else {
+        "attempted": 0, "destroyed": 0, "failed_actor_ids": [],
+        "skipped_duplicate_actor_ids": [],
+    }
+    result["matched_actor_ids"] = matched_ids
+    if result["failed_actor_ids"]:
+        raise RuntimeError("failed to clean stale validation actors: {0}".format(result["failed_actor_ids"]))
+    return result
+
+
 def _drain_pipeline(pipeline, accepted_count, timeout):
     deadline = time.time() + timeout
     while time.time() < deadline:
@@ -470,8 +498,11 @@ def run_smoke(args):
             "server_version": server_version, "map": world.get_map().name,
             "actor_counts_before": _vehicle_counts(world),
         })
-        if partial["actor_counts_before"]["preexisting_validation_actor_count"]:
-            raise RuntimeError("pre-existing UROPCLAW validation actors found; refusing to delete or reuse them")
+        partial["stale_validation_cleanup"] = cleanup_stale_validation_actors(
+            list(world.get_actors().filter("vehicle.*")),
+            enabled=args.cleanup_stale_validation_actors,
+        )
+        partial["actor_counts_after_stale_cleanup"] = _vehicle_counts(world)
 
         model = YOLO(str(args.weight))
         if not torch.cuda.is_available():
