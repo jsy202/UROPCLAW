@@ -1,0 +1,32 @@
+{
+  "captured_at_utc": "2026-10-02T18:48:40.411476+00:00",
+  "carla_client": "0.9.13",
+  "carla_server": "0.9.13",
+  "cuda_available": true,
+  "gpu": "NVIDIA GeForce RTX 3060",
+  "map": "Carla/Maps/Town10HD_Opt",
+  "model_warmup_count_excluded": 10,
+  "model_warmup_latencies_ms": [
+    4343.713,
+    18.858,
+    19.708,
+    17.704,
+    20.469,
+    20.77,
+    16.386,
+    18.497,
+    18.713,
+    19.395
+  ],
+  "numpy": "1.21.6",
+  "opencv": "4.8.1",
+  "planned_repetitions": 40,
+  "python": "3.7.17",
+  "torch": "1.13.1+cu117",
+  "torch_cuda": "11.7",
+  "torchvision": "0.14.1+cu117",
+  "ultralytics": "8.0.145",
+  "weight": "yolov8s.pt",
+  "weight_sha256": "268e5bb54c640c96c3510224833bc2eeacab4135c6deb41502156e39986b562d",
+  "weight_source": "Post-project pretrained YOLOv8s; original research weight unavailable"
+}
