@@ -1,1 +1,3 @@
 scenario,repetitions,input_frames,frames_with_yolo_detection,frames_passing_hsv,frames_with_active_track,frames_triggering_confirmation,images_sent_to_vlm,yolo_positive_over_input,hsv_pass_over_yolo_positive,tracking_over_hsv_pass,confirmation_over_tracking,vlm_images_over_input
+target,10,1000,1000,320,320,150,10,1.0,0.32,1.0,0.46875,0.01
+non_target,10,1000,1000,0,0,0,0,1.0,0.0,,,0.0
