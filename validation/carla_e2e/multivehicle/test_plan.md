@@ -11,7 +11,7 @@
    RGB sensor frame ID. Up to ten bounded readiness ticks are allowed.
 7. Run fifty pre-roll ticks; match every tick ID to its sensor frame and use ten
    real pre-roll frames for YOLO warm-up.
-8. Start the probe route and accept exactly 100 measured frames.
+8. Enable probe autopilot and accept exactly 100 measured frames.
 9. Run the injected production pipeline with Real YOLO, existing HSV/tracker/
    temporal/deduplication, deterministic Fake VLM, and Fake Alert.
 10. Drain queues, evaluate every smoke gate, stop the camera callback/sensor,
@@ -21,8 +21,10 @@
 The runner exits zero only when every gate in `scenario_design.md` passes.
 Failure evidence remains in `evidence/smoke/` with a non-zero exit code.
 
-## Deferred work
+## Repeated Target/Non-target benchmark
 
-The repeated Target/Non-target benchmark runner is intentionally not present.
-It will be prepared only after reviewing an actual Target smoke PASS. Its
-planned default is 100 frames/run with an explicit CLI option up to 200.
+Prepared only after the host Target smoke PASS. `run_host_benchmark.py` plans
+the scene once, saves the Target manifest, and runs each repetition as a
+separate `run_host_smoke.py` subprocess replaying it (Non-target derives the
+manifest via the parity-checked probe-colour change). Repetitions alternate
+Target/Non-target; default 10 each, 100 frames/run.

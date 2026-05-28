@@ -1,7 +1,16 @@
-2026-10-03 04:43:22,054 [ERROR] Multi-vehicle smoke failed
-Traceback (most recent call last):
-  File "validation/carla_e2e/multivehicle/run_host_smoke.py", line 421, in run_smoke
-    image = image_queue.get(timeout=args.timeout)
-  File "/usr/lib/python3.7/queue.py", line 178, in get
-    raise Empty
-_queue.Empty
+2026-10-03 05:21:13,536 [INFO] Phase: spawn (16 planned vehicles)
+2026-10-03 05:21:13,569 [INFO] Phase: camera_readiness
+2026-10-03 05:21:13,591 [INFO] Phase: pre_roll
+2026-10-03 05:21:16,265 [INFO] YoloWorker started (baseline_mode=proposed)
+2026-10-03 05:21:16,265 [INFO] OpenClawWorker started (LLM image verification)
+2026-10-03 05:21:16,266 [INFO] AlertWorker started
+2026-10-03 05:21:16,266 [INFO] MetricsWriter started
+2026-10-03 05:21:16,266 [INFO] Pipeline started (4 threads)
+2026-10-03 05:21:16,266 [INFO] Phase: measurement
+2026-10-03 05:21:17,107 [INFO] [openclaw] uropclaw1 confirmed=True confidence=high reason=deterministic multi-vehicle smoke response
+2026-10-03 05:21:17,108 [INFO] [uropclaw1] detection event written: track=9 color=blue
+2026-10-03 05:21:18,750 [INFO] Phase: drain (accepted=100, ticks=100, drops=0)
+2026-10-03 05:21:19,291 [INFO] Pipeline stopped
+2026-10-03 05:21:19,310 [INFO] Cleanup: stopping camera, releasing 17 actors from TM, destroying
+2026-10-03 05:21:19,322 [INFO] Cleanup result: {"attempted": 17, "cleanup_ticks": [{"frame": 198256, "label": "after_tm_release"}, {"frame": 198257, "label": "after_destroy"}], "destroyed": 17, "failed_actor_ids": [], "skipped_duplicate_actor_ids": [], "tm_release": {"failed_actor_ids": [], "released_actor_ids": [398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413]}}
+2026-10-03 05:21:19,334 [INFO] Multi-vehicle smoke status: PASS
