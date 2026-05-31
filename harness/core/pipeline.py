@@ -245,6 +245,11 @@ class YoloWorker(threading.Thread):
                 use_dedup = dedup_enabled(mode)
 
                 for tid, track in tracks.items():
+                    # Only a track matched to a detection in this frame may add
+                    # temporal evidence; an unmatched track keeps its old bbox,
+                    # which no longer shows the vehicle.
+                    if track.disappeared != 0:
+                        continue
                     color = track.color_history[-1] if track.color_history else "unknown"
                     result = confirmer.update(tid, color, timestamp)
                     if result is None:
@@ -397,12 +402,16 @@ class OpenClawWorker(threading.Thread):
                 continue
 
             now = time.time()
-            key = item["agent_id"]
 
             self._dedup.cleanup(now)
 
             if item.get("dedup_enabled", True):
-                if not self._dedup.should_verify(key, now):
+                # Per-target dedup: repeat requests for the same target are
+                # suppressed; a different target is not blocked by its cooldown.
+                allowed, _reason = self._dedup.should_verify_target(
+                    item["camera_id"], item["track_id"], item.get("color"), item.get("bbox"), now
+                )
+                if not allowed:
                     self._metrics["duplicate_suppressed"] = (
                         self._metrics.get("duplicate_suppressed", 0) + 1
                     )

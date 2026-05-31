@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from conftest import wait_until
 import core.pipeline as pipeline_mod
@@ -51,6 +52,10 @@ class CachedDetector:
         return self.by_id[id(frame)]
 
 
+@pytest.mark.skip(reason=(
+    "v1 shadow replicates production before the stale-track and per-target dedup fixes; "
+    "equivalence was verified at commit 51724c9. v2 is tested against current production "
+    "in test_continuous_ablation_v2.py."))
 def test_full_shadow_branch_matches_production_pipeline(make_pipeline):
     stream = synthetic_stream()
     pipeline = make_pipeline(detector=CachedDetector(stream))
