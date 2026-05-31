@@ -107,5 +107,13 @@ CARLA actor box) is evidence only. Mean fragmented actors per run: 4.
 - yolo_weight_sha256: 268e5bb54c640c96c3510224833bc2eeacab4135c6deb41502156e39986b562d
 - yolo_weight_source: post-project pretrained YOLOv8s weight
 
+## Related experiment
+
+This report is Experiment A (system integration / stability validation). Experiment B,
+a separate 10-minute continuous-traffic run with a 4-way shadow ablation of HSV,
+Temporal Confirmation and Deduplication on identical YOLO output, is reported in
+`../continuous_ablation/continuous_10min_report.md`. Its numbers are not merged with
+the results above.
+
 Historical 46,372 / 28,736 / 3,298 / 53 values are not compared with these
 measurements because their units are not established as identical.

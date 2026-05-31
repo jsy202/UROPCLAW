@@ -447,6 +447,16 @@ def write_report(output_dir, environment, run_rows, scenario_rows, frame_summary
             lines.append("- {0}: {1}".format(key, environment[key]))
     lines += [
         "",
+        "## Related experiment",
+        "",
+        "This report is Experiment A (system integration / stability validation). Experiment B,",
+        "a separate 10-minute continuous-traffic run with a 4-way shadow ablation of HSV,",
+        "Temporal Confirmation and Deduplication on identical YOLO output, is reported in",
+        "`../continuous_ablation/continuous_10min_report.md`. Its numbers are not merged with",
+        "the results above.",
+    ]
+    lines += [
+        "",
         "Historical 46,372 / 28,736 / 3,298 / 53 values are not compared with these",
         "measurements because their units are not established as identical.",
         "",
