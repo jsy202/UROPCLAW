@@ -1,0 +1,10 @@
+actor_id,slot,blueprint,entered_fov,yolo_detected,hsv_passed,tracked,confirmed,vlm_reached,entered_fov_first_s,yolo_detected_first_s,hsv_passed_first_s,tracked_first_s,confirmed_first_s,vlm_reached_first_s,full_candidates,full_vlm_triggers,suppressed_same_target,suppressed_fragment,blocked_by_other_actor,failure_reason
+1257,5,vehicle.chevrolet.impala,True,True,True,True,True,True,67.6,68.2,68.2,68.2,68.4,68.4,16,4,12,0,,
+1265,13,vehicle.mini.cooper_s_2021,True,True,True,True,True,True,28.8,28.9,29.1,29.1,29.1,29.1,21,3,17,1,,
+1273,21,vehicle.mini.cooper_s,True,True,True,True,True,True,367.9,368.2,368.2,368.2,368.5,368.5,14,2,12,0,,
+1281,29,vehicle.bmw.grandtourer,True,True,True,True,True,True,103.2,103.3,103.4,103.4,103.5,103.5,13,2,11,0,,
+1289,37,vehicle.carlamotors.firetruck,True,True,True,True,True,True,204.5,204.7,205.0,205.0,205.2,205.2,6,1,4,1,,
+1297,45,vehicle.lincoln.mkz_2020,True,True,True,True,True,True,154.7,155.0,155.2,155.2,155.2,155.2,15,2,13,0,,
+1305,53,vehicle.volkswagen.t2,True,True,True,True,True,True,99.6,99.8,99.9,99.9,100.0,100.0,6,1,5,0,,
+1313,61,vehicle.micro.microlino,True,True,True,True,True,True,200.7,201.0,201.0,201.0,201.2,201.2,16,2,14,0,,
+1321,69,vehicle.ford.crown,True,True,True,True,True,True,92.5,92.7,92.9,92.9,93.2,93.2,14,3,11,0,,

@@ -1,0 +1,2 @@
+minute,frames,unique_vehicles,target_vehicles,yolo_detections,frames_with_detection,mean_visible_vehicles,moving_vehicles,tracked_vehicles,full_suppressed,vlm_triggers_full,vlm_triggers_no_hsv,vlm_triggers_no_temporal,vlm_triggers_no_dedup
+0,450,19,1,442,259,1.387,70,70,12,2,16,2,14
