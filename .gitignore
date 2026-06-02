@@ -40,3 +40,7 @@ workspace-unify-backup/
 # 테스트
 .pytest_cache/
 benchmark_results/*.tmp
+
+# CARLA validation host run artifacts
+validation/carla_e2e/real_pipeline/evidence/runs/**/first_frame.png
+validation/carla_e2e/real_pipeline/evidence/runs/**/crops/
