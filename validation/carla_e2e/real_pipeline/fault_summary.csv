@@ -1,0 +1,5 @@
+fault,repetitions,injected,detected,recovered,pipeline_crashes,next_normal_request_successes,max_queue_depth,dropped_frames,dropped_events
+delay,5,5,5,5,0,5,3,0,0
+timeout,5,5,5,5,0,5,3,0,0
+error,5,5,5,5,0,5,3,0,0
+malformed,5,5,5,5,0,5,3,0,0

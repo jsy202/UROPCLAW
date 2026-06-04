@@ -1,0 +1,1210 @@
+{
+  "e2e_latency_samples": [
+    {
+      "accepted_monotonic": 35061.385022503,
+      "boundary": "frame_accepted_to_final_decision",
+      "decision_monotonic": 35062.615771961,
+      "decision_timestamp": 1790966987.6050322,
+      "latency_ms": 1230.749,
+      "sample_index": 0,
+      "source_frame_timestamp": 1790966986.3742805,
+      "terminal": "alert_policy_allow",
+      "track_id": 0
+    },
+    {
+      "accepted_monotonic": 35062.387204177,
+      "boundary": "frame_accepted_to_final_decision",
+      "decision_monotonic": 35062.617213079,
+      "decision_timestamp": 1790966987.6064732,
+      "latency_ms": 230.009,
+      "sample_index": 1,
+      "source_frame_timestamp": 1790966987.3764617,
+      "terminal": "alert_policy_allow",
+      "track_id": 0
+    }
+  ],
+  "production_metrics": {
+    "alerts_delivered": 2,
+    "alerts_failed": 0,
+    "alerts_sent": 2,
+    "baseline_mode": "proposed",
+    "candidates_dropped": 0,
+    "candidates_raised": 6,
+    "color_filter_passed": 20,
+    "detections_total": 20,
+    "duplicate_suppressed": 4,
+    "frames_dropped": 0,
+    "frames_processed": 20,
+    "frames_received": 20,
+    "openclaw_call_reduction_rate": 0.9,
+    "openclaw_calls": 2,
+    "openclaw_confirmed": 2,
+    "openclaw_errors": 1,
+    "openclaw_parse_failures": 0,
+    "openclaw_timeouts": 0,
+    "pipeline_fps": 9.06,
+    "uptime_seconds": 2.2,
+    "yolo_latency_ms_list": [
+      26.67,
+      25.29,
+      25.06,
+      25.85,
+      24.39,
+      27.61,
+      25.44,
+      20.9,
+      26.7,
+      25.54,
+      25.03,
+      27.16,
+      25.87,
+      29.04,
+      29.25,
+      28.24,
+      26.9,
+      26.07,
+      25.12,
+      25.9
+    ]
+  },
+  "queue_samples": [
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 1,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 1,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 2,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 3,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    },
+    {
+      "candidate": 0,
+      "frame": 0,
+      "result": 0
+    }
+  ],
+  "row": {
+    "at_or_below_1000": 1,
+    "backlog_accumulation": false,
+    "camera_frames": 22,
+    "compliance_rate": 0.5,
+    "confirmed_tracks": 2,
+    "dropped_events": 0,
+    "dropped_frames": 0,
+    "duplicate_suppressed": 4,
+    "e2e_max_ms": 1230.749,
+    "e2e_mean_ms": 730.379,
+    "e2e_p50_ms": 730.379,
+    "e2e_p95_ms": 1180.712,
+    "e2e_p99_ms": 1220.742,
+    "e2e_sample_count": 2,
+    "ending_queue_depth": 0,
+    "error": "",
+    "false_target_events": 0,
+    "fault": "error",
+    "fault_detected": true,
+    "fault_injected": 1,
+    "hsv_target_passes": 20,
+    "input_frames": 20,
+    "max_candidate_queue": 3,
+    "max_frame_queue": 1,
+    "max_queue_depth": 3,
+    "max_result_queue": 0,
+    "next_normal_request_success": true,
+    "over_1000": 1,
+    "pipeline_alive": true,
+    "pipeline_crash": false,
+    "recovered": true,
+    "repetition": 5,
+    "run_id": "fault-05-c190153e",
+    "scenario": "fault",
+    "scenario_success": true,
+    "status": "COMPLETE",
+    "target_events": 2,
+    "unique_tracks": 2,
+    "vlm_requests": 2,
+    "yolo_detections": 20
+  },
+  "scene": {
+    "target_color": "blue",
+    "vehicle_color": "blue"
+  },
+  "yolo_latency_ms": [
+    25.949,
+    24.386,
+    24.112,
+    24.945,
+    23.504,
+    26.867,
+    24.575,
+    20.24,
+    25.955,
+    24.582,
+    24.156,
+    26.422,
+    25.191,
+    28.268,
+    28.57,
+    27.314,
+    26.181,
+    25.3,
+    24.415,
+    25.275
+  ]
+}

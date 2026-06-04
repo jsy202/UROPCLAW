@@ -1,0 +1,32 @@
+{
+  "event_id": "9c0437d8-1de3-4ebb-9b7b-f0ad029f197b",
+  "camera_id": "validation_camera_1",
+  "agent_id": "uropclaw1",
+  "track_id": 0,
+  "timestamp": 1790966932.6737587,
+  "color": "blue",
+  "color_score": 1.0,
+  "yolo_class": "car",
+  "yolo_confidence": 0.9139,
+  "bbox": [
+    335,
+    265,
+    463,
+    363
+  ],
+  "location": {
+    "x": -61.3,
+    "y": 21.8
+  },
+  "mission_id": "validation-target-09-c0d211d9",
+  "crop_path": "/home/jsy202/validation-work/UROPCLAW-carla-e2e/validation/carla_e2e/real_pipeline/evidence/runs/target-09-c0d211d9/workspace/uropclaw1/state/crops/evt_9c0437d8.jpg",
+  "openclaw_result": {
+    "confirmed": true,
+    "confidence": "high",
+    "vehicle_body_type": "car",
+    "target_body_type_match": true,
+    "color_match": true,
+    "color_observed": "blue",
+    "reason": "deterministic validation response"
+  }
+}

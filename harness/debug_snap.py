@@ -13,6 +13,8 @@ Usage:
     python3 debug_snap.py --out /tmp/debug
 """
 
+from __future__ import annotations
+
 import sys
 import argparse
 import logging

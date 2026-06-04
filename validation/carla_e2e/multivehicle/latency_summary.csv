@@ -1,0 +1,9 @@
+scenario,subset,sample_count,mean_ms,p50_ms,p95_ms,p99_ms,max_ms,at_or_below_1000,over_1000,compliance_rate
+target,all_terminal_decisions,140,27.055,22.035,42.755,54.711,56.133,140,0,1.0
+target,alert_policy_allow,10,22.714,22.412,24.964,26.071,26.348,10,0,1.0
+target,target_color_reject,130,27.389,20.387,43.115,54.721,56.133,130,0,1.0
+target,probe_tracks,10,22.714,22.412,24.964,26.071,26.348,10,0,1.0
+non_target,all_terminal_decisions,150,25.582,19.529,37.779,54.312,54.999,150,0,1.0
+non_target,alert_policy_allow,0,,,,,,0,0,
+non_target,target_color_reject,150,25.582,19.529,37.779,54.312,54.999,150,0,1.0
+non_target,probe_tracks,20,18.501,18.458,19.205,19.74,19.874,20,0,1.0

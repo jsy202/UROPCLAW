@@ -3,6 +3,8 @@ SQLite 기반 세션 상태 관리
 - 세션 생성·갱신·재개
 - Checkpoint 저장·복원
 """
+
+from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 

@@ -1,0 +1,87 @@
+{
+  "callback_errors": [],
+  "camera_blueprint": "sensor.camera.rgb",
+  "camera_spawned": true,
+  "client_version": "0.9.13",
+  "error": null,
+  "expected_carla_version": "0.9.13",
+  "finished_at_utc": "2026-10-02T17:32:07.959059+00:00",
+  "frame_evidence_path": "/home/jsy202/validation-work/UROPCLAW-carla-e2e/validation/carla_e2e/evidence/host_smoke/frame.png",
+  "frame_evidence_saved": true,
+  "frames": [
+    {
+      "frame_id": 119309,
+      "height": 600,
+      "timestamp": 752.0042891000776,
+      "width": 800
+    },
+    {
+      "frame_id": 119311,
+      "height": 600,
+      "timestamp": 752.5704615890427,
+      "width": 800
+    },
+    {
+      "frame_id": 119312,
+      "height": 600,
+      "timestamp": 752.5780678732699,
+      "width": 800
+    },
+    {
+      "frame_id": 119313,
+      "height": 600,
+      "timestamp": 752.5996048568195,
+      "width": 800
+    },
+    {
+      "frame_id": 119314,
+      "height": 600,
+      "timestamp": 752.6210786110169,
+      "width": 800
+    },
+    {
+      "frame_id": 119328,
+      "height": 600,
+      "timestamp": 752.7667253037362,
+      "width": 800
+    },
+    {
+      "frame_id": 119341,
+      "height": 600,
+      "timestamp": 752.865839461927,
+      "width": 800
+    },
+    {
+      "frame_id": 119355,
+      "height": 600,
+      "timestamp": 752.9667112325697,
+      "width": 800
+    },
+    {
+      "frame_id": 119369,
+      "height": 600,
+      "timestamp": 753.0676915362856,
+      "width": 800
+    },
+    {
+      "frame_id": 119382,
+      "height": 600,
+      "timestamp": 753.1651245952962,
+      "width": 800
+    }
+  ],
+  "frames_received": 10,
+  "host": "127.0.0.1",
+  "map_name": "Carla/Maps/Town10HD_Opt",
+  "port": 2000,
+  "requested_frames": 10,
+  "sensor_destroyed": true,
+  "sensor_stopped": true,
+  "server_version": "0.9.13",
+  "started_at_utc": "2026-10-02T17:32:06.666345+00:00",
+  "status": "PASS",
+  "synchronous_mode": false,
+  "timeout_seconds": 20.0,
+  "versions_match_expected": true,
+  "world_query_succeeded": true
+}

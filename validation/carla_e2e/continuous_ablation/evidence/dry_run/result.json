@@ -1,0 +1,239 @@
+{
+  "branch_exceptions": [],
+  "branches": {
+    "full": {
+      "active_target_track_observations": 43,
+      "candidates_raised": 20,
+      "duplicate_suppressed": 19,
+      "exceptions": 0,
+      "frames_processed": 450,
+      "frames_triggering_confirmation": 20,
+      "frames_with_active_target_track": 43,
+      "frames_with_hsv_candidate": 43,
+      "frames_with_vlm_trigger": 1,
+      "hsv_candidate_detections": 43,
+      "max_candidates_in_one_frame": 1,
+      "temporal_confirmations_passing_gate": 20,
+      "temporal_results": 238,
+      "vlm_triggers": 1
+    },
+    "no_dedup": {
+      "active_target_track_observations": 43,
+      "candidates_raised": 20,
+      "duplicate_suppressed": 0,
+      "exceptions": 0,
+      "frames_processed": 450,
+      "frames_triggering_confirmation": 20,
+      "frames_with_active_target_track": 43,
+      "frames_with_hsv_candidate": 43,
+      "frames_with_vlm_trigger": 20,
+      "hsv_candidate_detections": 43,
+      "max_candidates_in_one_frame": 1,
+      "temporal_confirmations_passing_gate": 20,
+      "temporal_results": 238,
+      "vlm_triggers": 20
+    },
+    "no_hsv": {
+      "active_target_track_observations": 440,
+      "candidates_raised": 244,
+      "duplicate_suppressed": 242,
+      "exceptions": 0,
+      "frames_processed": 450,
+      "frames_triggering_confirmation": 144,
+      "frames_with_active_target_track": 259,
+      "frames_with_hsv_candidate": 259,
+      "frames_with_vlm_trigger": 2,
+      "hsv_candidate_detections": 440,
+      "max_candidates_in_one_frame": 6,
+      "temporal_confirmations_passing_gate": 244,
+      "temporal_results": 244,
+      "vlm_triggers": 2
+    },
+    "no_temporal": {
+      "active_target_track_observations": 43,
+      "candidates_raised": 43,
+      "duplicate_suppressed": 42,
+      "exceptions": 0,
+      "frames_processed": 450,
+      "frames_triggering_confirmation": 43,
+      "frames_with_active_target_track": 43,
+      "frames_with_hsv_candidate": 43,
+      "frames_with_vlm_trigger": 1,
+      "hsv_candidate_detections": 43,
+      "max_candidates_in_one_frame": 1,
+      "temporal_confirmations_passing_gate": 43,
+      "temporal_results": 440,
+      "vlm_triggers": 1
+    }
+  },
+  "candidate_association": {
+    "full": {
+      "target_actor": 17,
+      "trigger_target_actor": 1,
+      "unassociated": 3
+    },
+    "no_dedup": {
+      "target_actor": 17,
+      "trigger_target_actor": 17,
+      "trigger_unassociated": 3,
+      "unassociated": 3
+    },
+    "no_hsv": {
+      "non_target_actor": 135,
+      "target_actor": 17,
+      "trigger_non_target_actor": 2,
+      "unassociated": 92
+    },
+    "no_temporal": {
+      "target_actor": 43,
+      "trigger_target_actor": 1
+    }
+  },
+  "cleanup": {
+    "attempted": 71,
+    "cleanup_ticks": [
+      {
+        "frame": 436968,
+        "label": "after_tm_release"
+      },
+      {
+        "frame": 436969,
+        "label": "after_destroy"
+      }
+    ],
+    "destroyed": 71,
+    "failed_actor_ids": [],
+    "skipped_duplicate_actor_ids": [],
+    "tm_release": {
+      "failed_actor_ids": [],
+      "released_actor_ids": [
+        755,
+        756,
+        757,
+        758,
+        759,
+        760,
+        761,
+        762,
+        763,
+        764,
+        765,
+        766,
+        767,
+        768,
+        769,
+        770,
+        771,
+        772,
+        773,
+        774,
+        775,
+        776,
+        777,
+        778,
+        779,
+        780,
+        781,
+        782,
+        783,
+        784,
+        785,
+        786,
+        787,
+        788,
+        789,
+        790,
+        791,
+        792,
+        793,
+        794,
+        795,
+        796,
+        797,
+        798,
+        799,
+        800,
+        801,
+        802,
+        803,
+        804,
+        805,
+        806,
+        807,
+        808,
+        809,
+        810,
+        811,
+        812,
+        813,
+        814,
+        815,
+        816,
+        817,
+        818,
+        819,
+        820,
+        821,
+        822,
+        823,
+        824
+      ]
+    }
+  },
+  "common": {
+    "dropped_camera_frames": 0,
+    "frames_with_no_visible_vehicle": 111,
+    "frames_with_no_yolo_detection": 191,
+    "frames_with_vehicle_detection": 259,
+    "input_frames": 450,
+    "max_detections_per_frame": 4,
+    "mean_detections_per_frame": 0.9778,
+    "non_target_vehicles_entering_fov": 18,
+    "p95_detections_per_frame": 3.0,
+    "raycasts": 683,
+    "simulation_duration_s": 45.0,
+    "spawned_target_color_vehicles": 9,
+    "spawned_vehicles": 70,
+    "target_color_vehicles_entering_fov": 1,
+    "target_color_vehicles_matched_by_yolo": 1,
+    "total_yolo_vehicle_detections": 440,
+    "unique_vehicles_entering_fov": 19,
+    "unique_vehicles_entering_fov_3plus_frames": 17,
+    "unique_vehicles_matched_by_yolo": 15,
+    "yolo_latency_ms_mean": 14.608,
+    "yolo_latency_ms_p95": 15.926
+  },
+  "dropped_frames": [],
+  "memory_samples": [
+    {
+      "cuda_allocated_mb": 42.6,
+      "frame_index": 0,
+      "raycasts": 3,
+      "rss_mb": 3335.2,
+      "sim_time_s": 0.0,
+      "triggers": {
+        "full": 0,
+        "no_dedup": 0,
+        "no_hsv": 0,
+        "no_temporal": 0
+      },
+      "wall_elapsed_s": 0.1
+    },
+    {
+      "cuda_allocated_mb": 42.6,
+      "frame_index": 449,
+      "raycasts": 683,
+      "rss_mb": 3338.0,
+      "sim_time_s": 44.9,
+      "triggers": {
+        "full": 1,
+        "no_dedup": 20,
+        "no_hsv": 2,
+        "no_temporal": 1
+      },
+      "wall_elapsed_s": 20.9
+    }
+  ],
+  "spawn_failures": [],
+  "status": "COMPLETE"
+}

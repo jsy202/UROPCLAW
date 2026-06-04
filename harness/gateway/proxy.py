@@ -6,6 +6,8 @@ POST /v1/{agent_id}/decision     → agent 결정 접수
 GET  /v1/{agent_id}/history      → 최근 N개 observation 이력
 GET  /v1/fleet/summary           → 전체 차량 요약
 """
+from __future__ import annotations
+
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 

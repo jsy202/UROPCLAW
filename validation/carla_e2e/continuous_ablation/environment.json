@@ -1,0 +1,72 @@
+{
+  "actual_simulation_duration_s": 600.0,
+  "branches": {
+    "full": {
+      "use_dedup": true,
+      "use_hsv": true,
+      "use_temporal": true
+    },
+    "no_dedup": {
+      "use_dedup": false,
+      "use_hsv": true,
+      "use_temporal": true
+    },
+    "no_hsv": {
+      "use_dedup": true,
+      "use_hsv": false,
+      "use_temporal": true
+    },
+    "no_temporal": {
+      "use_dedup": true,
+      "use_hsv": true,
+      "use_temporal": false
+    }
+  },
+  "camera": {
+    "fov": 90,
+    "height": 600,
+    "sensor_tick": 0.0,
+    "width": 800
+  },
+  "camera_manifest": "validation/carla_e2e/multivehicle/evidence/benchmark/target_scene_manifest.json",
+  "carla_client_version": "0.9.13",
+  "carla_server_version": "0.9.13",
+  "duration_seconds_requested": 600.0,
+  "experiment": "B: continuous monitoring / pipeline efficiency ablation",
+  "fixed_delta_seconds": 0.1,
+  "gpu": "NVIDIA GeForce RTX 3060",
+  "label": "full_10min_run3",
+  "map": "Carla/Maps/Town10HD_Opt",
+  "opencv": "4.8.1",
+  "palette": [
+    "0,0,255",
+    "255,0,0",
+    "255,255,255",
+    "10,10,10",
+    "150,150,150",
+    "0,200,0",
+    "255,255,0",
+    "255,140,0"
+  ],
+  "pre_roll_seconds": 5.0,
+  "python": "3.7.17",
+  "requested_vehicles": 70,
+  "seed": 42,
+  "spawned_vehicles": 70,
+  "stale_validation_cleanup": {
+    "attempted": 0,
+    "destroyed": 0,
+    "failed_actor_ids": [],
+    "matched_actor_ids": [],
+    "skipped_duplicate_actor_ids": []
+  },
+  "target_color": "blue",
+  "time_basis": "simulation time for temporal, dedup and tracker reconnect windows",
+  "torch": "1.13.1+cu117",
+  "torch_cuda": "11.7",
+  "ultralytics": "8.0.145",
+  "yolo_confidence": 0.4,
+  "yolo_iou": 0.45,
+  "yolo_weight": "yolov8s.pt",
+  "yolo_weight_source": "post-project pretrained YOLOv8s weight"
+}

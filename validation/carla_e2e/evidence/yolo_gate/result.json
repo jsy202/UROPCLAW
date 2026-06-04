@@ -1,0 +1,71 @@
+{
+  "annotated_frame_saved": true,
+  "camera_frames_dropped": 0,
+  "camera_frames_received": 60,
+  "camera_transform": {
+    "location": {
+      "x": -56.644874572753906,
+      "y": 24.49323844909668,
+      "z": 2.3999998569488525
+    },
+    "rotation": {
+      "pitch": -7.0,
+      "roll": 0.0,
+      "yaw": 180.15919494628906
+    }
+  },
+  "cuda_synchronized_per_inference": true,
+  "detected_vehicle_classes": [
+    "car"
+  ],
+  "error": null,
+  "finished_at_utc": "2026-10-02T18:21:25.116429+00:00",
+  "inference_device": "cuda:0",
+  "input_frame_saved": true,
+  "model_load_count": 1,
+  "model_load_ms": 36.281,
+  "pipeline_detection_contract_compatible": true,
+  "positive_detection": {
+    "bbox": [
+      335,
+      265,
+      463,
+      363
+    ],
+    "class_id": 2,
+    "class_name": "car",
+    "confidence": 0.9088155031204224
+  },
+  "positive_detection_count": 60,
+  "positive_frame_count": 60,
+  "raw_box_count": 120,
+  "sensor_destroyed": true,
+  "sensor_stopped": true,
+  "started_at_utc": "2026-10-02T18:21:18.908827+00:00",
+  "status": "PASS",
+  "steady_state_latency_ms": {
+    "max": 28.142,
+    "mean": 23.675,
+    "p50": 24.041,
+    "p95": 27.343,
+    "sample_count": 50
+  },
+  "steady_state_sample_count": 50,
+  "target_vehicle_blueprint": "vehicle.tesla.model3",
+  "target_vehicle_destroyed": true,
+  "target_vehicle_transform": {
+    "location": {
+      "x": -64.64484405517578,
+      "y": 24.471010208129883,
+      "z": 0.5999999642372131
+    },
+    "rotation": {
+      "pitch": 0.0,
+      "roll": 0.0,
+      "yaw": 0.15919798612594604
+    }
+  },
+  "unique_frame_count": 60,
+  "warmup_latencies_excluded_from_summary": true,
+  "warmup_sample_count": 10
+}
