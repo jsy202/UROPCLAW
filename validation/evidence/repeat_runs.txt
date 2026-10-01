@@ -1,0 +1,11 @@
+# 10 consecutive full-suite runs (Python 3.10.12, pytest 8.4.2, opencv-python-headless 5.0.0), 2026-10-01, code at ec519cd
+36 passed in 19.63s
+36 passed in 19.63s
+36 passed in 19.64s
+36 passed in 19.63s
+36 passed in 19.63s
+36 passed in 19.63s
+36 passed in 19.63s
+36 passed in 19.63s
+36 passed in 19.62s
+36 passed in 19.63s

@@ -1,0 +1,5 @@
+# Local reproduction of CI steps, 2026-10-01, code at ec519cd
+compileall: ok
+11 passed in 0.02s
+25 passed in 19.61s
+wrote <tmp>/ci_bench.json
