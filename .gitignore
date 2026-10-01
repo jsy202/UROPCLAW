@@ -32,3 +32,7 @@ workspace-unify-backup/
 .idea/
 .vscode/
 *.swp
+
+# 테스트
+.pytest_cache/
+benchmark_results/*.tmp
