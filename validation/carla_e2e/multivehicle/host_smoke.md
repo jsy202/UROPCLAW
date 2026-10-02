@@ -9,6 +9,14 @@ source .venv-carla-e2e/bin/activate
 python validation/carla_e2e/multivehicle/run_host_smoke.py
 ```
 
+If a previous validation process aborted after spawning its role-tagged actors,
+use the explicit recovery flag. It destroys only actors whose `role_name`
+starts with `uropclaw_validation_` and records their IDs:
+
+```bash
+python validation/carla_e2e/multivehicle/run_host_smoke.py --cleanup-stale-validation-actors
+```
+
 Do not start a second CARLA server. The command exits `0` only for a complete
 smoke PASS and writes:
 
