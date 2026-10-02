@@ -1,0 +1,277 @@
+{
+  "branch_exceptions": [],
+  "branches": {
+    "full": {
+      "active_target_track_observations": 42,
+      "candidates_from_disappeared_tracks": 0,
+      "candidates_raised": 14,
+      "duplicate_suppressed": 12,
+      "exceptions": 0,
+      "frames_processed": 450,
+      "frames_triggering_confirmation": 14,
+      "frames_with_active_target_track": 42,
+      "frames_with_hsv_candidate": 42,
+      "frames_with_vlm_trigger": 2,
+      "hsv_candidate_detections": 42,
+      "max_candidates_in_one_frame": 1,
+      "suppressed_fragment_continuity": 1,
+      "suppressed_same_target_cooldown": 11,
+      "temporal_confirmations_passing_gate": 14,
+      "temporal_results": 131,
+      "temporal_updates_on_unmatched_tracks": 0,
+      "vlm_triggers": 2,
+      "vlm_triggers_from_disappeared_tracks": 0
+    },
+    "no_dedup": {
+      "active_target_track_observations": 42,
+      "candidates_from_disappeared_tracks": 0,
+      "candidates_raised": 14,
+      "duplicate_suppressed": 0,
+      "exceptions": 0,
+      "frames_processed": 450,
+      "frames_triggering_confirmation": 14,
+      "frames_with_active_target_track": 42,
+      "frames_with_hsv_candidate": 42,
+      "frames_with_vlm_trigger": 14,
+      "hsv_candidate_detections": 42,
+      "max_candidates_in_one_frame": 1,
+      "suppressed_fragment_continuity": 0,
+      "suppressed_same_target_cooldown": 0,
+      "temporal_confirmations_passing_gate": 14,
+      "temporal_results": 131,
+      "temporal_updates_on_unmatched_tracks": 0,
+      "vlm_triggers": 14,
+      "vlm_triggers_from_disappeared_tracks": 0
+    },
+    "no_hsv": {
+      "active_target_track_observations": 442,
+      "candidates_from_disappeared_tracks": 0,
+      "candidates_raised": 132,
+      "duplicate_suppressed": 116,
+      "exceptions": 0,
+      "frames_processed": 450,
+      "frames_triggering_confirmation": 113,
+      "frames_with_active_target_track": 259,
+      "frames_with_hsv_candidate": 259,
+      "frames_with_vlm_trigger": 16,
+      "hsv_candidate_detections": 442,
+      "max_candidates_in_one_frame": 3,
+      "suppressed_fragment_continuity": 10,
+      "suppressed_same_target_cooldown": 106,
+      "temporal_confirmations_passing_gate": 132,
+      "temporal_results": 132,
+      "temporal_updates_on_unmatched_tracks": 0,
+      "vlm_triggers": 16,
+      "vlm_triggers_from_disappeared_tracks": 0
+    },
+    "no_temporal": {
+      "active_target_track_observations": 42,
+      "candidates_from_disappeared_tracks": 0,
+      "candidates_raised": 42,
+      "duplicate_suppressed": 40,
+      "exceptions": 0,
+      "frames_processed": 450,
+      "frames_triggering_confirmation": 42,
+      "frames_with_active_target_track": 42,
+      "frames_with_hsv_candidate": 42,
+      "frames_with_vlm_trigger": 2,
+      "hsv_candidate_detections": 42,
+      "max_candidates_in_one_frame": 1,
+      "suppressed_fragment_continuity": 1,
+      "suppressed_same_target_cooldown": 39,
+      "temporal_confirmations_passing_gate": 42,
+      "temporal_results": 442,
+      "temporal_updates_on_unmatched_tracks": 0,
+      "vlm_triggers": 2,
+      "vlm_triggers_from_disappeared_tracks": 0
+    }
+  },
+  "candidate_association": {
+    "full": {
+      "target_actor": 14,
+      "trigger_target_actor": 2,
+      "triggers_saved": 2
+    },
+    "no_dedup": {
+      "target_actor": 14,
+      "trigger_target_actor": 14,
+      "triggers_saved": 14
+    },
+    "no_hsv": {
+      "non_target_actor": 114,
+      "target_actor": 14,
+      "trigger_non_target_actor": 14,
+      "trigger_target_actor": 2,
+      "triggers_saved": 16,
+      "unassociated": 4
+    },
+    "no_temporal": {
+      "target_actor": 42,
+      "trigger_target_actor": 2,
+      "triggers_saved": 2
+    }
+  },
+  "cleanup": {
+    "attempted": 71,
+    "cleanup_ticks": [
+      {
+        "frame": 593660,
+        "label": "after_tm_release"
+      },
+      {
+        "frame": 593661,
+        "label": "after_destroy"
+      }
+    ],
+    "destroyed": 71,
+    "failed_actor_ids": [],
+    "skipped_duplicate_actor_ids": [],
+    "tm_release": {
+      "failed_actor_ids": [],
+      "released_actor_ids": [
+        1110,
+        1111,
+        1112,
+        1113,
+        1114,
+        1115,
+        1116,
+        1117,
+        1118,
+        1119,
+        1120,
+        1121,
+        1122,
+        1123,
+        1124,
+        1125,
+        1126,
+        1127,
+        1128,
+        1129,
+        1130,
+        1131,
+        1132,
+        1133,
+        1134,
+        1135,
+        1136,
+        1137,
+        1138,
+        1139,
+        1140,
+        1141,
+        1142,
+        1143,
+        1144,
+        1145,
+        1146,
+        1147,
+        1148,
+        1149,
+        1150,
+        1151,
+        1152,
+        1153,
+        1154,
+        1155,
+        1156,
+        1157,
+        1158,
+        1159,
+        1160,
+        1161,
+        1162,
+        1163,
+        1164,
+        1165,
+        1166,
+        1167,
+        1168,
+        1169,
+        1170,
+        1171,
+        1172,
+        1173,
+        1174,
+        1175,
+        1176,
+        1177,
+        1178,
+        1179
+      ]
+    }
+  },
+  "common": {
+    "dropped_camera_frames": 0,
+    "frames_with_vehicle_detection": 259,
+    "input_frames": 450,
+    "max_detections_per_frame": 5,
+    "mean_detections_per_frame": 0.9822,
+    "non_target_vehicles_entering_fov": 18,
+    "p95_detections_per_frame": 3.0,
+    "simulation_duration_s": 45.0,
+    "spawned_vehicles": 70,
+    "target_color_vehicles_entering_fov": 1,
+    "total_yolo_vehicle_detections": 442,
+    "unique_vehicles_entering_fov": 19,
+    "unique_vehicles_matched_by_yolo": 15,
+    "yolo_latency_ms_mean": 14.373,
+    "yolo_latency_ms_p95": 15.375
+  },
+  "dropped_frames": [],
+  "examples_saved": {
+    "fragment_continuity": 1,
+    "new_target_within_30s": 1,
+    "same_target_cooldown": 3
+  },
+  "label": "dry_run_45s",
+  "memory_samples": [
+    {
+      "cuda_allocated_mb": 42.6,
+      "frame_index": 0,
+      "rss_mb": 3332.9,
+      "sim_time_s": 0.0,
+      "triggers": {
+        "full": 0,
+        "no_dedup": 0,
+        "no_hsv": 0,
+        "no_temporal": 0
+      },
+      "wall_elapsed_s": 0.0
+    },
+    {
+      "cuda_allocated_mb": 42.6,
+      "frame_index": 449,
+      "rss_mb": 3337.2,
+      "sim_time_s": 44.9,
+      "triggers": {
+        "full": 2,
+        "no_dedup": 14,
+        "no_hsv": 16,
+        "no_temporal": 2
+      },
+      "wall_elapsed_s": 20.9
+    }
+  ],
+  "spawn_failures": [],
+  "status": "COMPLETE",
+  "trigger_target_actors": {
+    "full": 1,
+    "no_dedup": 1,
+    "no_hsv": 1,
+    "no_temporal": 1
+  },
+  "trigger_unique_actors": {
+    "full": 1,
+    "no_dedup": 1,
+    "no_hsv": 12,
+    "no_temporal": 1
+  },
+  "trigger_unique_tracks": {
+    "full": 2,
+    "no_dedup": 3,
+    "no_hsv": 16,
+    "no_temporal": 2
+  }
+}

@@ -1,0 +1,13 @@
+run,configuration,branch,vlm_triggers,vs_full_increase,vs_full_ratio,candidates_before_dedup,candidates_vs_full_ratio,duplicate_suppressed,suppressed_same_target_cooldown,suppressed_fragment_continuity,unique_tracks_triggering,unique_actors_triggering,unique_target_actors_triggering,triggers_target_actor,triggers_non_target_actor,triggers_unassociated,candidates_from_disappeared_tracks,vlm_triggers_from_disappeared_tracks,frames_with_hsv_candidate,frames_with_active_target_track,frames_triggering_confirmation,frames_with_vlm_trigger,max_candidates_in_one_frame,dropped_frames,branch_exceptions
+run1,Full,full,19,0,1.0,89,1.0,70,68,2,19,10,9,16,3,0,0,0,285,285,89,19,1,0,0
+run1,No HSV,no_hsv,142,123,7.4737,1252,14.0674,1110,1026,84,142,60,9,13,127,2,0,0,2682,2682,1086,141,3,0,0
+run1,No Temporal,no_temporal,22,3,1.1579,292,3.2809,270,259,11,22,10,9,19,2,1,0,0,285,285,285,22,2,0,0
+run1,No Dedup,no_dedup,89,70,4.6842,89,1.0,0,0,0,21,10,9,84,5,0,0,0,285,285,89,89,1,0,0
+run2,Full,full,23,0,1.0,126,1.0,103,101,2,23,10,9,20,3,0,0,0,398,398,126,23,1,0,0
+run2,No HSV,no_hsv,156,133,6.7826,1229,9.754,1073,1002,71,156,62,9,17,138,1,0,0,2744,2744,1078,153,3,0,0
+run2,No Temporal,no_temporal,29,6,1.2609,407,3.2302,378,371,7,29,10,9,26,2,1,0,0,398,398,398,29,2,0,0
+run2,No Dedup,no_dedup,126,103,5.4783,126,1.0,0,0,0,25,10,9,121,5,0,0,0,398,398,126,126,1,0,0
+run3,Full,full,23,0,1.0,126,1.0,103,101,2,23,10,9,20,3,0,0,0,397,397,126,23,1,0,0
+run3,No HSV,no_hsv,155,132,6.7391,1230,9.7619,1075,1003,72,155,62,9,17,137,1,0,0,2741,2741,1080,152,3,0,0
+run3,No Temporal,no_temporal,29,6,1.2609,406,3.2222,377,370,7,29,10,9,26,2,1,0,0,397,397,397,29,2,0,0
+run3,No Dedup,no_dedup,126,103,5.4783,126,1.0,0,0,0,25,10,9,121,5,0,0,0,397,397,126,126,1,0,0
