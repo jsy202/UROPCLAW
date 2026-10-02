@@ -158,6 +158,9 @@ class TrafficManager:
     def set_path(self, actor, locations):
         self.paths.append((actor.id, locations))
 
+    def auto_lane_change(self, actor, value):
+        pass
+
 
 def transform_dict(x):
     return {"location": {"x": float(x), "y": 0.0, "z": 0.5}, "rotation": {"pitch": 0.0, "yaw": 0.0, "roll": 0.0}}
@@ -296,3 +299,53 @@ def test_movement_summary_requires_twelve_of_fifteen_backgrounds():
     assert summary["moving_count"] == 12
     assert summary["total_count"] == 15
     assert summary["most_background_moving"] is True
+
+
+def test_project_point_centre_and_behind_camera():
+    module = load_module()
+    camera = Transform(Location(0.0, 0.0, 0.0), Rotation(0.0, 0.0, 0.0))
+    assert module.project_point(camera, Location(10.0, 0.0, 0.0)) == (400.0, 300.0)
+    right = module.project_point(camera, Location(10.0, 5.0, 0.0))
+    assert right[0] > 400.0
+    assert module.project_point(camera, Location(-10.0, 0.0, 0.0)) is None
+
+
+def test_footprint_outside_horizontal_fov_is_not_in_image():
+    module = load_module()
+    camera = Transform(Location(0.0, 0.0, 0.0), Rotation(0.0, 0.0, 0.0))
+    assert module.footprint_in_image(Carla, camera, Location(20.0, 0.0, 0.0)) is True
+    assert module.footprint_in_image(Carla, camera, Location(10.0, 40.0, 0.0)) is False
+
+
+def test_route_deviation_measures_distance_to_nearest_segment():
+    module = load_module()
+    route = [{"x": 0.0, "y": 0.0}, {"x": 10.0, "y": 0.0}, {"x": 10.0, "y": 10.0}]
+    assert module.route_deviation_m([5.0, 2.0], route) == 2.0
+    assert module.route_deviation_m([12.0, 5.0], route) == 2.0
+
+
+def test_ray_clear_ignores_endpoint_hits_but_rejects_occluders():
+    module = load_module()
+
+    class Hit:
+        def __init__(self, location):
+            self.location = location
+
+    class RayWorld:
+        def __init__(self, hits):
+            self.hits = hits
+
+        def cast_ray(self, start, end):
+            return self.hits
+
+    end = Location(10.0, 0.0, 1.0)
+    assert module._ray_clear(RayWorld([Hit(Location(10.0, 0.0, 0.0))]), Location(), end) is True
+    assert module._ray_clear(RayWorld([Hit(Location(5.0, 0.0, 1.0))]), Location(), end) is False
+
+
+def test_route_deviation_is_not_measured_outside_corridor_extent():
+    module = load_module()
+    route = [{"x": 0.0, "y": 0.0}, {"x": 10.0, "y": 0.0}, {"x": 20.0, "y": 0.0}]
+    assert module.route_deviation_m([25.0, 3.0], route) is None
+    assert module.route_deviation_m([-5.0, 0.0], route) is None
+    assert module.route_deviation_m([15.0, 3.0], route) == 3.0

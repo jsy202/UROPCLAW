@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import threading
+import time
 from collections import defaultdict
 
 
@@ -38,24 +39,47 @@ class Observation:
         self.track_to_actors = defaultdict(set)
         self.detections_per_frame = {}
         self.visible_vehicles_per_frame = {}
+        self.probe_bbox_by_frame = {}
+        self.probe_state_by_frame = {}
         self.probe_fov_enter_frame = None
         self.probe_fov_exit_frame = None
         self._probe_was_visible = False
         self.probe_yolo_detected = False
+        self.first_probe_detection = None
         self.probe_hsv_passed = False
         self.target_track_created = False
         self.target_temporal_confirmed = False
+        # Probe-associated evidence: a target-colour result counts for the
+        # probe only if the track overlapped the probe's ground-truth bbox.
+        self.probe_track_ids = set()
+        self.probe_track_created = False
+        self.probe_temporal_confirmed = False
+        self.non_probe_target_confirmed_track_ids = set()
+        # E2E: frame input-queue insertion -> final target-colour rejection or
+        # AlertPolicy allow (same boundary as the single-vehicle validation).
+        self.accepted_monotonic = {}
+        self.latency_keys = set()
+        self.latency_rows = []
+        self.confirmed_colors = {}
+        self._previous_track_ids = set()
+        self.removed_track_ids = set()
         self.lock = threading.RLock()
 
     def accept_frame(self, frame, frame_id, timestamp, ground_truth):
         key = id(frame)
         with self.lock:
+            # Keep a strong reference: frames are keyed by id(), and CPython
+            # reuses the address of a released array for the next frame.
             self.frame_meta[key] = {
                 "frame_id": int(frame_id), "timestamp": float(timestamp),
-                "ground_truth": ground_truth or {},
+                "ground_truth": ground_truth or {}, "frame_ref": frame,
+            }
+            self.probe_bbox_by_frame[int(frame_id)] = (ground_truth or {}).get("probe_bbox")
+            self.probe_state_by_frame[int(frame_id)] = {
+                key: (ground_truth or {}).get(key)
+                for key in ("probe_location", "probe_speed_mps", "probe_route_deviation_m")
             }
             self.timestamp_to_frame[float(timestamp)] = key
-            self.current_frame = frame
             visible_count = len((ground_truth or {}).get("actor_boxes", {}))
             self.visible_vehicles_per_frame[int(frame_id)] = visible_count
             probe_visible = (ground_truth or {}).get("probe_bbox") is not None
@@ -64,6 +88,30 @@ class Observation:
             if not probe_visible and self._probe_was_visible and self.probe_fov_enter_frame is not None:
                 self.probe_fov_exit_frame = int(frame_id)
             self._probe_was_visible = probe_visible
+
+    def register_acceptance(self, wall_timestamp, monotonic_timestamp):
+        with self.lock:
+            self.accepted_monotonic[float(wall_timestamp)] = monotonic_timestamp
+
+    def terminal(self, timestamp, terminal, track_id):
+        decision_monotonic = time.perf_counter()
+        key = (terminal, int(track_id), float(timestamp))
+        with self.lock:
+            if key in self.latency_keys:
+                return
+            self.latency_keys.add(key)
+            accepted = self.accepted_monotonic.get(float(timestamp))
+            if accepted is None:
+                return
+            self.latency_rows.append({
+                "sample_index": len(self.latency_rows),
+                "source_frame_id": self._frame_id(self.timestamp_to_frame.get(float(timestamp))),
+                "accepted_monotonic": accepted,
+                "decision_monotonic": decision_monotonic,
+                "terminal": terminal,
+                "track_id": int(track_id),
+                "latency_ms": round(max(0.0, (decision_monotonic - accepted) * 1000.0), 3),
+            })
 
     def _key(self, frame=None, timestamp=None):
         if frame is not None:
@@ -89,6 +137,11 @@ class Observation:
                     self.yolo_frames.add(frame_id)
             probe_bbox = self.frame_meta.get(key, {}).get("ground_truth", {}).get("probe_bbox")
             if probe_bbox and any(bbox_iou(det.bbox, probe_bbox) >= 0.10 for det in detections):
+                if not self.probe_yolo_detected:
+                    self.first_probe_detection = {
+                        "frame_id": frame_id, "frame": frame, "probe_bbox": list(probe_bbox),
+                        "detections": [list(det.bbox) for det in detections],
+                    }
                 self.probe_yolo_detected = True
 
     def record_classification(self, frame, bbox, color):
@@ -107,6 +160,10 @@ class Observation:
         with self.lock:
             frame_id = self._frame_id(key)
             actor_boxes = self.frame_meta.get(key, {}).get("ground_truth", {}).get("actor_boxes", {})
+            probe_bbox = self.frame_meta.get(key, {}).get("ground_truth", {}).get("probe_bbox")
+            current_ids = {int(track_id) for track_id in tracks}
+            self.removed_track_ids.update(self._previous_track_ids - current_ids)
+            self._previous_track_ids = current_ids
             for track_id, track in tracks.items():
                 scoped_id = int(track_id)
                 self.unique_track_ids.add(scoped_id)
@@ -118,6 +175,10 @@ class Observation:
                 if color == self.target_color and frame_id is not None:
                     self.tracking_frames.add(frame_id)
                     self.target_track_created = True
+                if probe_bbox and bbox_iou(getattr(track, "bbox", None), probe_bbox) >= 0.30:
+                    self.probe_track_ids.add(scoped_id)
+                    if color == self.target_color:
+                        self.probe_track_created = True
                 for actor_id, actor_bbox in actor_boxes.items():
                     if bbox_iou(getattr(track, "bbox", None), actor_bbox) >= 0.30:
                         self.actor_to_tracks[str(actor_id)].add(scoped_id)
@@ -129,12 +190,20 @@ class Observation:
         key = self._key(timestamp=timestamp)
         with self.lock:
             track_id = int(result["track_id"])
+            first_confirmation = track_id not in self.confirmed_track_ids
             self.confirmed_track_ids.add(track_id)
+            self.confirmed_colors[track_id] = result.get("color")
+            if first_confirmation and result.get("color") != self.target_color:
+                self.terminal(timestamp, "target_color_reject", track_id)
             if result.get("color") == self.target_color:
                 frame_id = self._frame_id(key)
                 if frame_id is not None:
                     self.confirmation_frames.add(frame_id)
                 self.target_temporal_confirmed = True
+                if track_id in self.probe_track_ids:
+                    self.probe_temporal_confirmed = True
+                else:
+                    self.non_probe_target_confirmed_track_ids.add(track_id)
 
     def record_vlm_image(self, frame_id=None):
         with self.lock:
@@ -209,19 +278,25 @@ def frame_retention(metrics):
     }
 
 
-def evaluate_smoke_gate(result):
+def evaluate_smoke_gate(result, scenario="target"):
     enter = result.get("probe_fov_enter_frame")
     exit_frame = result.get("probe_fov_exit_frame")
+    if scenario == "non_target":
+        return _evaluate_non_target_gate(result, enter, exit_frame)
     gates = {
         "controlled_actors_16": result.get("actual_controlled_vehicle_count") == 16,
         "most_background_actors_moved": bool(result.get("background_movement", {}).get("most_background_moving")),
         "two_yolo_vehicle_boxes_in_one_frame": result.get("max_yolo_vehicle_boxes_per_frame", 0) >= 2,
         "probe_fov_entry": enter is not None and 0 < enter < 100,
         "probe_fov_exit": exit_frame is not None and enter is not None and enter < exit_frame < 100,
+        "probe_followed_planned_corridor": (
+            result.get("probe_route_max_deviation_m") is not None
+            and result.get("probe_route_max_deviation_m") <= 3.5
+        ),
         "probe_yolo_detection": bool(result.get("probe_yolo_detected")),
         "probe_blue_hsv_pass": bool(result.get("probe_hsv_passed")),
-        "target_track_created": bool(result.get("target_track_created")),
-        "target_temporal_confirmation": bool(result.get("target_temporal_confirmed")),
+        "probe_target_track_created": bool(result.get("probe_track_created")),
+        "probe_temporal_confirmation": bool(result.get("probe_temporal_confirmed")),
         "fake_vlm_request": result.get("fake_vlm_requests", 0) > 0,
         "vlm_image_supplied": result.get("images_sent_to_vlm", 0) > 0,
         "exactly_100_input_frames": result.get("input_frames") == 100,
@@ -231,6 +306,41 @@ def evaluate_smoke_gate(result):
             and not result.get("cleanup", {}).get("failed_actor_ids")
         ),
     }
+    failed = [name for name, passed in gates.items() if not passed]
+    return {"status": "PASS" if not failed else "FAIL", "gates": gates, "failed_gates": failed}
+
+
+def _common_gates(result, enter, exit_frame):
+    cleanup = result.get("cleanup", {})
+    return {
+        "controlled_actors_16": result.get("actual_controlled_vehicle_count") == 16,
+        "most_background_actors_moved": bool(result.get("background_movement", {}).get("most_background_moving")),
+        "two_yolo_vehicle_boxes_in_one_frame": result.get("max_yolo_vehicle_boxes_per_frame", 0) >= 2,
+        "probe_fov_entry": enter is not None and 0 < enter < 100,
+        "probe_fov_exit": exit_frame is not None and enter is not None and enter < exit_frame < 100,
+        "probe_followed_planned_corridor": (
+            result.get("probe_route_max_deviation_m") is not None
+            and result.get("probe_route_max_deviation_m") <= 3.5
+        ),
+        "probe_yolo_detection": bool(result.get("probe_yolo_detected")),
+        "exactly_100_input_frames": result.get("input_frames") == 100,
+        "owned_actor_cleanup": (
+            cleanup.get("attempted", 0) >= 17
+            and cleanup.get("destroyed") == cleanup.get("attempted")
+            and not cleanup.get("failed_actor_ids")
+        ),
+    }
+
+
+def _evaluate_non_target_gate(result, enter, exit_frame):
+    """Non-target: the red probe is observed by the pipeline and never becomes a target."""
+    gates = _common_gates(result, enter, exit_frame)
+    gates.update({
+        "probe_tracked": bool(result.get("probe_track_ids")),
+        "no_probe_target_confirmation": not result.get("probe_temporal_confirmed"),
+        "no_fake_vlm_request": result.get("fake_vlm_requests", 0) == 0,
+        "no_false_target_event": result.get("target_events", result.get("fake_alert_events", 0)) == 0,
+    })
     failed = [name for name, passed in gates.items() if not passed]
     return {"status": "PASS" if not failed else "FAIL", "gates": gates, "failed_gates": failed}
 

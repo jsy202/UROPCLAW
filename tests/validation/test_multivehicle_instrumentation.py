@@ -118,8 +118,9 @@ def passing_result():
         "probe_fov_exit_frame": 70,
         "probe_yolo_detected": True,
         "probe_hsv_passed": True,
-        "target_track_created": True,
-        "target_temporal_confirmed": True,
+        "probe_track_created": True,
+        "probe_temporal_confirmed": True,
+        "probe_route_max_deviation_m": 1.2,
         "fake_vlm_requests": 1,
         "images_sent_to_vlm": 1,
         "cleanup": {"attempted": 17, "destroyed": 17, "failed_actor_ids": []},
@@ -137,8 +138,9 @@ def test_smoke_gate_requires_every_observed_condition():
         "actual_controlled_vehicle_count", "background_movement",
         "max_yolo_vehicle_boxes_per_frame", "probe_fov_enter_frame",
         "probe_fov_exit_frame", "probe_yolo_detected", "probe_hsv_passed",
-        "target_track_created", "target_temporal_confirmed",
+        "probe_track_created", "probe_temporal_confirmed",
         "fake_vlm_requests", "images_sent_to_vlm", "cleanup", "input_frames",
+        "probe_route_max_deviation_m",
     ):
         value = passing_result()
         if key == "actual_controlled_vehicle_count":
@@ -155,6 +157,8 @@ def test_smoke_gate_requires_every_observed_condition():
             value[key]["destroyed"] = 16
         elif key == "input_frames":
             value[key] = 99
+        elif key == "probe_route_max_deviation_m":
+            value[key] = 6.0
         else:
             value[key] = False
         failed = module.evaluate_smoke_gate(value)
@@ -179,3 +183,64 @@ def test_frame_retention_uses_only_frame_image_denominators():
         "confirmation_over_tracking": pytest.approx(1 / 3),
         "vlm_images_over_input": 0.02,
     }
+
+
+def test_target_confirmation_counts_for_probe_only_when_track_overlaps_probe_bbox():
+    module = load_module()
+    observation = module.Observation("blue")
+    frame = object()
+    observation.accept_frame(frame, 0, 10.0, {"actor_boxes": {}, "probe_bbox": [100, 100, 200, 200]})
+
+    class Track:
+        def __init__(self, bbox):
+            self.bbox = bbox
+            self.disappeared = 0
+            self.color_history = ["blue"]
+
+    observation.record_tracks(frame, {1: Track([100, 100, 200, 200]), 2: Track([500, 500, 560, 560])})
+    observation.record_confirmation(10.0, {"track_id": 2, "color": "blue"})
+    assert observation.target_temporal_confirmed is True
+    assert observation.probe_temporal_confirmed is False
+    assert observation.non_probe_target_confirmed_track_ids == {2}
+
+    observation.record_confirmation(10.0, {"track_id": 1, "color": "blue"})
+    assert observation.probe_track_created is True
+    assert observation.probe_temporal_confirmed is True
+
+
+def non_target_passing_result():
+    value = passing_result()
+    value.update({
+        "probe_hsv_passed": False, "probe_track_created": False,
+        "probe_temporal_confirmed": False, "probe_track_ids": [4],
+        "fake_vlm_requests": 0, "images_sent_to_vlm": 0, "target_events": 0,
+    })
+    return value
+
+
+def test_non_target_gate_requires_tracked_probe_and_no_target_event():
+    module = load_module()
+    assert module.evaluate_smoke_gate(non_target_passing_result(), "non_target")["status"] == "PASS"
+    for key, bad in (
+        ("probe_track_ids", []), ("probe_temporal_confirmed", True),
+        ("fake_vlm_requests", 1), ("target_events", 1), ("input_frames", 99),
+    ):
+        value = non_target_passing_result()
+        value[key] = bad
+        assert module.evaluate_smoke_gate(value, "non_target")["status"] == "FAIL", key
+
+
+def test_latency_terminal_uses_acceptance_time_and_records_colour_rejection_once():
+    module = load_module()
+    observation = module.Observation("blue")
+    frame = object()
+    observation.accept_frame(frame, 3, 50.0, {"actor_boxes": {}, "probe_bbox": None})
+    observation.register_acceptance(50.0, 0.0)
+    observation.record_confirmation(50.0, {"track_id": 8, "color": "red"})
+    observation.record_confirmation(50.0, {"track_id": 8, "color": "red"})
+    observation.terminal(51.0, "alert_policy_allow", 9)
+    assert len(observation.latency_rows) == 1
+    row = observation.latency_rows[0]
+    assert row["terminal"] == "target_color_reject"
+    assert row["source_frame_id"] == 3
+    assert row["track_id"] == 8

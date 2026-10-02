@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import copy
+import faulthandler
 import hashlib
 import json
 import logging
@@ -33,10 +35,10 @@ from instrumentation import (  # noqa: E402
 )
 from scene import (  # noqa: E402
     actor_locations, cleanup_owned_actors, movement_summary, plan_scene,
-    spawn_planned_vehicles, start_probe, synchronous_mode, transform_from_dict,
+    release_from_traffic_manager, route_deviation_m, spawn_planned_vehicles, start_probe, synchronous_mode, transform_from_dict,
 )
 from scene_manifest import (  # noqa: E402
-    build_non_target_manifest, validate_manifest_parity, write_manifest,
+    build_non_target_manifest, read_manifest, validate_manifest_parity, write_manifest,
 )
 
 
@@ -61,6 +63,11 @@ def parse_args(argv=None):
     parser.add_argument("--weight", type=Path, default=DEFAULT_WEIGHT)
     parser.add_argument("--evidence-dir", type=Path, default=EVIDENCE_DIR)
     parser.add_argument("--cleanup-stale-validation-actors", action="store_true")
+    parser.add_argument("--scenario", choices=("target", "non_target"), default="target")
+    parser.add_argument(
+        "--replay-manifest", type=Path, default=None,
+        help="Replay the planned_scene of a saved Target manifest instead of re-planning",
+    )
     return parser.parse_args(argv)
 
 
@@ -263,9 +270,30 @@ def stop_camera_stream(stream, camera):
             pass
 
 
-def shutdown_scene_resources(stream, camera, owned_actors):
+def _safe_tick(world, timeout, label, ticks):
+    if world is None:
+        return
+    try:
+        ticks.append({"label": label, "frame": int(world.tick(timeout))})
+    except Exception as error:
+        ticks.append({"label": label, "error": "{0}: {1}".format(type(error).__name__, error)})
+
+
+def shutdown_scene_resources(stream, camera, owned_actors, world=None, tm_port=None, tick_timeout=10.0):
+    """Stop camera, unregister TM vehicles, then destroy while still synchronous."""
     stop_camera_stream(stream, camera)
-    return cleanup_owned_actors(owned_actors)
+    ticks = []
+    release = None
+    if tm_port is not None:
+        release = release_from_traffic_manager(owned_actors, tm_port)
+        _safe_tick(world, tick_timeout, "after_tm_release", ticks)
+    result = cleanup_owned_actors(owned_actors)
+    _safe_tick(world, tick_timeout, "after_destroy", ticks)
+    if release is not None:
+        result["tm_release"] = release
+    if world is not None:
+        result["cleanup_ticks"] = ticks
+    return result
 
 
 class RealYoloDetector:
@@ -345,11 +373,14 @@ class FakeVLM:
 
 
 class FakeAlert:
-    def __init__(self):
+    def __init__(self, observation=None):
         self.events = []
+        self.observation = observation
 
     def __call__(self, agent_id, event):
         self.events.append(event)
+        if self.observation is not None:
+            self.observation.terminal(event["timestamp"], "alert_policy_allow", event["track_id"])
         return True
 
 
@@ -370,7 +401,15 @@ def _ground_truth(actors, probe_actor, camera_transform, args, np):
         bbox = project_actor_bbox(actor, camera_transform, args.width, args.height, args.fov, np)
         if bbox is not None:
             boxes[str(actor.id)] = bbox
-    return {"actor_boxes": boxes, "probe_bbox": boxes.get(str(probe_actor.id))}
+    probe_location = probe_actor.get_transform().location
+    probe_velocity = probe_actor.get_velocity()
+    return {
+        "actor_boxes": boxes, "probe_bbox": boxes.get(str(probe_actor.id)),
+        "probe_location": [round(probe_location.x, 2), round(probe_location.y, 2)],
+        "probe_speed_mps": round(
+            (probe_velocity.x ** 2 + probe_velocity.y ** 2 + probe_velocity.z ** 2) ** 0.5, 2
+        ),
+    }
 
 
 def _vehicle_counts(world):
@@ -438,6 +477,7 @@ def run_smoke(args):
     logger = _setup_logging(evidence_dir)
     partial = {"phase": "initializing", "status": "RUNNING"}
     owned_actors = []
+    world = None
     pipeline = None
     camera = None
     camera_stream = None
@@ -466,8 +506,12 @@ def run_smoke(args):
             except Exception:
                 pass
             pipeline = None
-        cleanup = shutdown_scene_resources(camera_stream, camera, owned_actors)
+        logger.info("Cleanup: stopping camera, releasing %d actors from TM, destroying", len(owned_actors))
+        cleanup = shutdown_scene_resources(
+            camera_stream, camera, owned_actors, world, args.tm_port, args.timeout
+        )
         cleanup_complete = True
+        logger.info("Cleanup result: %s", json.dumps(cleanup, sort_keys=True))
 
     try:
         validate_args(args)
@@ -529,17 +573,29 @@ def run_smoke(args):
         base_detector = RealYoloDetector(model, torch, Detection, cv2, evidence_dir)
         detector = InstrumentedDetector(base_detector, observation)
         vlm = FakeVLM(observation)
-        alert = FakeAlert()
+        alert = FakeAlert(observation)
 
         with ExitStack() as scene_stack:
             scene_stack.enter_context(synchronous_mode(world, tm, args.seed, 0.1))
             scene_stack.callback(cleanup_scene)
-            planned = plan_scene(carla, world, args.seed, args.background_vehicles)
+            if args.replay_manifest is not None:
+                source_manifest = read_manifest(args.replay_manifest)
+                if source_manifest.get("scenario") != "target":
+                    raise RuntimeError("--replay-manifest must be a saved Target manifest")
+                planned = copy.deepcopy(source_manifest["planned_scene"])
+                logger.info("Phase: replay planned scene from %s", args.replay_manifest)
+            else:
+                planned = plan_scene(carla, world, args.seed, args.background_vehicles)
             planned["traffic_manager"]["port"] = args.tm_port
             target_manifest, non_target_manifest = make_manifest_pair(planned)
-            manifest = target_manifest
+            manifest = target_manifest if args.scenario == "target" else non_target_manifest
+            planned = manifest["planned_scene"]
+            partial["scenario"] = args.scenario
+            partial["replayed_manifest"] = str(args.replay_manifest) if args.replay_manifest else None
+            write_manifest(evidence_dir / "target_scene_manifest.json", target_manifest)
             write_manifest(evidence_dir / "non_target_scene_manifest.json", non_target_manifest)
 
+            logger.info("Phase: spawn (%d planned vehicles)", len(planned["vehicles"]))
             controlled, actual = spawn_planned_vehicles(carla, world, tm, planned, args.tm_port)
             owned_actors.extend(controlled)
             manifest["actual_spawned_scene"] = actual
@@ -554,7 +610,9 @@ def run_smoke(args):
             camera_bp.set_attribute("image_size_x", str(args.width))
             camera_bp.set_attribute("image_size_y", str(args.height))
             camera_bp.set_attribute("fov", str(args.fov))
-            camera_bp.set_attribute("sensor_tick", "0.1")
+            # Capture on every synchronous tick (fixed_delta 0.1 s -> 10 Hz). sensor_tick=0.1
+            # equal to fixed_delta can be skipped by float accumulation in synchronous mode.
+            camera_bp.set_attribute("sensor_tick", str(planned["camera"]["sensor_tick"]))
             camera_transform = transform_from_dict(carla, planned["camera"]["transform"])
             camera = world.spawn_actor(camera_bp, camera_transform)
             owned_actors.append(camera)
@@ -566,6 +624,7 @@ def run_smoke(args):
             camera_stream = SynchronousSensorStream(camera)
             camera_stream.start()
             partial["phase"] = "camera_readiness"
+            logger.info("Phase: camera_readiness")
             ready_expected, ready_image = camera_stream.wait_until_ready(
                 world, args.timeout, args.sensor_timeout, args.camera_ready_ticks
             )
@@ -578,6 +637,7 @@ def run_smoke(args):
             background_before = actor_locations(controlled[:-1])
             pre_roll_ticks = int(round(args.pre_roll_seconds / 0.1))
             partial["phase"] = "pre_roll"
+            logger.info("Phase: pre_roll")
             for tick_index in range(pre_roll_ticks):
                 partial["pre_roll_tick_index"] = tick_index
                 expected_frame, image = camera_stream.tick_and_wait(
@@ -635,6 +695,7 @@ def run_smoke(args):
             callback_drops = 0
             measurement_ticks = 0
             partial["phase"] = "measurement"
+            logger.info("Phase: measurement")
             while accepted < args.frames:
                 measurement_ticks += 1
                 partial["measurement_tick_index"] = measurement_ticks
@@ -645,6 +706,8 @@ def run_smoke(args):
                 )
                 frame = _image_to_bgr(image, np)
                 ground_truth = _ground_truth(controlled, probe_actor, camera_transform, args, np)
+                deviation = route_deviation_m(ground_truth["probe_location"], probe_plan["route"])
+                ground_truth["probe_route_deviation_m"] = None if deviation is None else round(deviation, 3)
                 wall_timestamp = time.time()
                 if pipeline.frame_queue.full():
                     callback_drops += 1
@@ -656,6 +719,8 @@ def run_smoke(args):
                     "cam_location": planned["camera"]["transform"]["location"],
                     "cam_rotation": planned["camera"]["transform"]["rotation"],
                 }
+                # Register before insertion so a fast decision cannot race ahead.
+                observation.register_acceptance(wall_timestamp, time.perf_counter())
                 try:
                     pipeline.frame_queue.put_nowait(item)
                     accepted += 1
@@ -664,6 +729,7 @@ def run_smoke(args):
                     observation.frame_meta.pop(id(frame), None)
                     observation.timestamp_to_frame.pop(wall_timestamp, None)
 
+            logger.info("Phase: drain (accepted=%d, ticks=%d, drops=%d)", accepted, measurement_ticks, callback_drops)
             drained = _drain_pipeline(pipeline, accepted, args.drain_timeout)
             if not drained:
                 raise RuntimeError("pipeline queues did not drain before timeout")
@@ -673,6 +739,19 @@ def run_smoke(args):
             pipeline = None
 
             metrics = observation.metrics()
+            first_probe = observation.first_probe_detection
+            if first_probe is not None:
+                annotated = first_probe["frame"].copy()
+                x1, y1, x2, y2 = first_probe["probe_bbox"]
+                cv2.rectangle(annotated, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                for bx1, by1, bx2, by2 in first_probe["detections"]:
+                    cv2.rectangle(annotated, (bx1, by1), (bx2, by2), (0, 255, 0), 1)
+                cv2.imwrite(str(evidence_dir / "probe_first_detection_annotated.png"), annotated)
+            in_corridor_deviation = [
+                state["probe_route_deviation_m"]
+                for state in observation.probe_state_by_frame.values()
+                if state.get("probe_route_deviation_m") is not None
+            ]
             queue_samples = monitor_samples or [{"input": 0, "candidate": 0, "result": 0}]
             result = {
                 **partial,
@@ -688,11 +767,27 @@ def run_smoke(args):
                 "probe_fov_enter_frame": observation.probe_fov_enter_frame,
                 "probe_fov_exit_frame": observation.probe_fov_exit_frame,
                 "probe_yolo_detected": observation.probe_yolo_detected,
+                "probe_first_detection_frame": (
+                    observation.first_probe_detection["frame_id"]
+                    if observation.first_probe_detection else None
+                ),
                 "probe_hsv_passed": observation.probe_hsv_passed,
                 "target_track_created": observation.target_track_created,
                 "target_temporal_confirmed": observation.target_temporal_confirmed,
+                "probe_track_ids": sorted(observation.probe_track_ids),
+                "probe_track_created": observation.probe_track_created,
+                "probe_temporal_confirmed": observation.probe_temporal_confirmed,
+                "non_probe_target_confirmed_track_ids": sorted(observation.non_probe_target_confirmed_track_ids),
                 "fake_vlm_requests": vlm.calls,
                 "fake_alert_events": len(alert.events),
+                "target_events": len(alert.events),
+                "alert_track_ids": [int(event["track_id"]) for event in alert.events],
+                "tracker_removed_track_ids": sorted(observation.removed_track_ids),
+                "probe_color": planned["vehicles"][-1]["color"],
+                "confirmed_colors_by_track": {
+                    str(key): value for key, value in sorted(observation.confirmed_colors.items())
+                },
+                "latency_rows": list(observation.latency_rows),
                 "pipeline_alive": pipeline_alive,
                 "callback_dropped_frames": callback_drops,
                 "camera_sync": {
@@ -707,6 +802,10 @@ def run_smoke(args):
                 "frame_retention": frame_retention(metrics),
                 "tracking": observation.tracking_diagnostics(),
                 "visible_vehicle_count_by_frame": observation.visible_vehicles_per_frame,
+                "probe_bbox_by_frame": observation.probe_bbox_by_frame,
+                "probe_state_by_frame": observation.probe_state_by_frame,
+                "probe_route_max_deviation_m": max(in_corridor_deviation) if in_corridor_deviation else None,
+                "probe_route_frames_measured": len(in_corridor_deviation),
                 "detections_per_frame": observation.detections_per_frame,
                 "yolo_latency_ms": [round(value, 3) for value in base_detector.latencies_ms[args.model_warmup:]],
                 "queue": {
@@ -749,18 +848,20 @@ def run_smoke(args):
         if manifest is not None:
             manifest["actual_spawned_scene"]["cleanup"] = cleanup
             write_manifest(evidence_dir / "scene_manifest.json", manifest)
-            write_manifest(HERE / "scene_manifest.json", manifest)
+            if Path(args.evidence_dir) == EVIDENCE_DIR:
+                write_manifest(HERE / "scene_manifest.json", manifest)
         return 1
 
     partial["cleanup"] = cleanup
-    evaluation = evaluate_smoke_gate(partial)
+    evaluation = evaluate_smoke_gate(partial, args.scenario)
     partial.update(evaluation)
     partial["phase"] = "complete"
     _write_json(evidence_dir / "result.json", partial)
     if manifest is not None:
         manifest["actual_spawned_scene"]["cleanup"] = cleanup
         write_manifest(evidence_dir / "scene_manifest.json", manifest)
-        write_manifest(HERE / "scene_manifest.json", manifest)
+        if Path(args.evidence_dir) == EVIDENCE_DIR:
+            write_manifest(HERE / "scene_manifest.json", manifest)
     logger.info("Multi-vehicle smoke status: %s", partial["status"])
     if partial["failed_gates"]:
         logger.error("Failed gates: %s", ", ".join(partial["failed_gates"]))
@@ -768,6 +869,7 @@ def run_smoke(args):
 
 
 def main(argv=None):
+    faulthandler.enable(all_threads=True)
     args = parse_args(argv)
     return run_smoke(args)
 
