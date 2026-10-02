@@ -1,0 +1,30 @@
+{
+  "event_id": "b12be582-6125-44c5-ad08-3f8045c1b74f",
+  "camera_id": "validation_camera_1",
+  "agent_id": "uropclaw1",
+  "track_id": 0,
+  "timestamp": 1790966988.8862767,
+  "color": "blue",
+  "color_score": 1.0,
+  "yolo_class": "car",
+  "yolo_confidence": 0.9107,
+  "bbox": [
+    335,
+    265,
+    462,
+    363
+  ],
+  "location": {
+    "x": -61.3,
+    "y": 21.8
+  },
+  "mission_id": "validation-fault-01-cf4a947e",
+  "crop_path": "/home/jsy202/validation-work/UROPCLAW-carla-e2e/validation/carla_e2e/real_pipeline/evidence/runs/fault-01-cf4a947e/workspace/uropclaw1/state/crops/evt_b12be582.jpg",
+  "openclaw_result": {
+    "confirmed": true,
+    "confidence": "n/a",
+    "vehicle_body_type": "unknown",
+    "target_body_type_match": true,
+    "reason": "LLM \uac80\uc99d \uc2e4\ud328 \u2014 \uc790\ub3d9 \ud1b5\uacfc"
+  }
+}

@@ -1,8 +1,29 @@
 # Measured host environment
 
-PENDING host execution. This file is overwritten by `run_host_e2e.py` only
-after the CARLA version, CUDA device, dependencies, map, weight source, and
-weight checksum have actually been read on the host.
+This file is generated only after connecting to the host CARLA server.
 
-Required disclosure: **Post-project CARLA validation used a newly obtained
-pretrained YOLOv8s weight because the original research weight was unavailable.**
+| Item | Measured value |
+|---|---|
+| `captured_at_utc` | `2026-10-02T18:48:40.411476+00:00` |
+| `python` | `3.7.17` |
+| `carla_client` | `0.9.13` |
+| `carla_server` | `0.9.13` |
+| `map` | `Carla/Maps/Town10HD_Opt` |
+| `torch` | `1.13.1+cu117` |
+| `torchvision` | `0.14.1+cu117` |
+| `torch_cuda` | `11.7` |
+| `cuda_available` | `True` |
+| `gpu` | `NVIDIA GeForce RTX 3060` |
+| `ultralytics` | `8.0.145` |
+| `opencv` | `4.8.1` |
+| `numpy` | `1.21.6` |
+| `weight` | `yolov8s.pt` |
+| `weight_sha256` | `268e5bb54c640c96c3510224833bc2eeacab4135c6deb41502156e39986b562d` |
+| `weight_source` | `Post-project pretrained YOLOv8s; original research weight unavailable` |
+| `model_warmup_count_excluded` | `10` |
+| `model_warmup_latencies_ms` | `[4343.713, 18.858, 19.708, 17.704, 20.469, 20.77, 16.386, 18.497, 18.713, 19.395]` |
+| `planned_repetitions` | `40` |
+
+Required disclosure: **Post-project CARLA validation used a newly obtained pretrained YOLOv8s weight because the original research weight was unavailable.**
+
+No system Python package, NVIDIA driver, or system CUDA toolkit is changed by this runner.
