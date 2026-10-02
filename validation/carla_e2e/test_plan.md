@@ -5,7 +5,8 @@ The approved protocol is defined in `design.md`. Execution is gated in this orde
 | Phase | Planned repetitions | Status |
 |---|---:|---|
 | CARLA camera smoke | 1 | PASS — host evidence: matching 0.9.13 versions, world query, 10 RGB frames |
-| Real YOLO one-frame smoke | 1 | PENDING — host dependency setup and CUDA inference required |
+| Real YOLO one-frame smoke | 1 | PASS — CUDA inference and contract verified; zero boxes, cold-start 3,806.716 ms |
+| Real YOLO positive + steady-state gate | 1 | PENDING — 10 warm-up, 50 measured frames, positive vehicle detection required |
 | Target + fake VLM/alert | 10 | NOT RUN — Real YOLO gate pending |
 | Non-target + fake VLM/alert | 10 | NOT RUN — Real YOLO gate pending |
 | VLM delay | 5 | NOT RUN — Real YOLO gate pending |
