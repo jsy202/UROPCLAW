@@ -23,7 +23,7 @@ This interim report contains no CARLA E2E performance result. The camera host sm
 3. **Real VLM used:** no. The positive/steady-state YOLO gate is pending; authentication was not modified.
 4. **Real Alert used:** no. No alert path ran.
 5. **One-second monitoring cycle satisfied:** not measured; zero final-decision samples exist.
-6. **New defects:** the existing production pipeline fails to import in the required Python 3.7 environment because `harness/config.py` evaluates `dict[...]` annotations unsupported at runtime on Python 3.7. Eight additional harness modules contain the same unpostponed annotation pattern. Production code has not been changed at this gate.
+6. **New defects:** Python 3.7 annotation evaluation prevented production imports. The validation branch applies only postponed-annotation imports in nine files and a `typing_extensions.Literal` compatibility import; 36 existing unit/integration tests pass. See `real_pipeline/defects.md`.
 7. **Synthetic-validation issues reproduced in CARLA:** none; no complete Real YOLO pipeline run has occurred.
 8. **Résumé-ready measured numbers:** none. Environment inventory values are not pipeline performance results.
 9. **Required limitations:** see `limitations.md`; most importantly, no live CARLA frame reached Real YOLO.
