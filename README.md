@@ -1,551 +1,218 @@
-# UROPCLAW — AI Multi-agent Vehicle Surveillance · Post-project AI Pipeline Validation
+# UROPCLAW
 
-## Project
-CARLA 카메라 영상에서 미션 대상 색상의 차량을 찾아 Discord로 경보하는 AI 멀티에이전트 감시 시스템이다.
+CARLA 차량 감시 영상에서 지정된 색상의 차량을 찾아 알리는 AI perception pipeline입니다.
+YOLO → HSV → Tracking → Temporal Confirmation → Deduplication → VLM 순서로 후보를 단계적으로 줄입니다.
 
-## Architecture
-```text
-CARLA camera ─▶ frame_queue ─▶ YOLOv8 ─▶ HSV color ─▶ IoU tracker ─▶ temporal confirm (3 frames)
-   ─▶ candidate_queue ─▶ dedup (30 s/agent) ─▶ VLM (`claude --print`, fail-open) ─▶ result_queue
-   ─▶ AlertPolicy ─▶ detection_event.json + crop ─▶ Discord
+## 1. Project Overview
+
+**문제:** 감시 카메라의 모든 frame을 VLM(vision-language model)에 보내 "목표 차량인가"를 묻는 방식은 정확하지만, frame 수만큼 VLM 요청이 발생해 처리 부하와 비용이 커집니다.
+
+**접근:** 빠르고 저렴한 단계(차량 검출, 색상 필터, 추적, 시간적 확인, 중복 억제)가 먼저 후보를 선별하고, 남은 후보만 VLM이 검증하도록 단계별 후보 선별 구조를 설계했습니다. 각 단계는 서로 다른 종류의 불필요한 요청을 걸러냅니다.
+
+이 저장소에는 연구 당시 구현과, 연구 종료 후 실제 CARLA 환경에서 수행한 **post-project validation**이 함께 있습니다. 두 결과는 아래에서 분리해 설명합니다.
+
+## Key Results (post-project validation)
+
+10분 연속 CARLA 감시, 6,000 frames/run, 독립 실행 3회. 네 가지 구성이 동일한 frame과 동일한 YOLO 출력을 공유합니다.
+
+| | Run 1 / Run 2 / Run 3 |
+|---|---|
+| Target coverage (Full pipeline) | **9/9, 9/9, 9/9** target 차량이 VLM 단계까지 도달 |
+| HSV 제거 시 VLM trigger | Full 대비 **6.74–7.47배** |
+| Temporal 제거 시 dedup 직전 후보 | Full 대비 **3.22–3.28배** |
+| Dedup 제거 시 VLM trigger | Full 대비 **4.68–5.48배** |
+| Stale-track VLM trigger (수정 후) | **0 / 0 / 0** |
+| Dropped frames / crashes | **0 / 0** |
+
+VLM 요청 감소와 target coverage를 함께 검증했습니다. 여기서 "VLM trigger"는 production logic이 VLM을 호출하는 시점을 센 값이며, 이 실험에서 실제 VLM 추론은 수행하지 않았습니다.
+
+## 2. Architecture
+
+```mermaid
+flowchart LR
+    A[CARLA RGB camera<br/>10 Hz] --> B[YOLOv8s<br/>vehicle detection]
+    B --> C[HSV<br/>target-colour filter]
+    C --> D[IoU tracking]
+    D --> E[Temporal confirmation<br/>matched tracks only]
+    E --> F[Target-level<br/>deduplication]
+    F --> G[VLM verification<br/>candidate]
+    G --> H[AlertPolicy<br/>→ alert]
 ```
-코드 기준 상세 구조: [pipeline_architecture.md](validation/pipeline_architecture.md)
 
-## Original Research
-연구 당시에는 다음을 구현했다. 아래 "Original Research Documentation"은 당시 README 원문이며 수정하지 않았다.
+| 단계 | 역할 |
+|---|---|
+| YOLOv8s | frame에서 차량(car, bus, truck, motorcycle) bounding box를 검출합니다. |
+| HSV colour filter | box 중앙 영역의 HSV 분포로 색을 분류하고, 미션 대상 색(예: blue)과 다른 차량을 후보에서 제외합니다. |
+| IoU tracking | frame 간 box를 IoU로 연결해 track ID를 유지합니다. |
+| Temporal confirmation | 이번 frame에서 실제로 매칭된 track의 3-frame 다수결 색상이 대상 색일 때만 후보로 승격해, 순간적인 오검출을 거릅니다. |
+| Deduplication | target(track) 단위 30초 cooldown과 track 분할 연속성 판단으로, 같은 차량의 반복 VLM 요청을 억제합니다. 다른 차량은 막지 않습니다. |
+| VLM | 남은 후보 crop을 검증합니다. production에서는 `claude --print` CLI를 호출하며, 실패 시 fail-open으로 동작합니다. |
+| AlertPolicy | 미션 조건과 VLM 결과를 확인한 뒤 detection event를 기록하고 경보를 보냅니다. |
 
-- 5스레드 파이프라인
-- 4개 Discord agent
-- 평가 baseline A/B/C/proposed
+- CARLA actor ID는 **validation ground truth로만** 사용하며, production 판단에는 쓰지 않습니다.
+- 코드 기준 상세 구조: [pipeline_architecture.md](validation/pipeline_architecture.md)
 
-연구 당시 수치 결과는 이 저장소에 없다. 연구 당시 코드는 tag [`research-baseline`](https://github.com/jsy202/UROPCLAW/tree/research-baseline) (`f0d7651`)에 있다.
+## 3. Historical Research vs Post-project Validation
 
-## Post-project Validation (2026-10, 연구 종료 후)
-AI 모델의 정확도가 아니라, **다단계 파이프라인의 데이터 전달, 외부 의존성 장애 처리, 관측 가능성**을 검증했다.
+### Historical Research
 
-- 최소 주입 경계를 추가했다: `Pipeline(detector, vlm_runner, alert_sender)`, `world=None`. 기본값은 기존 YOLOv8, `claude` CLI, Discord다.
-- 테스트에서는 이 3가지만 FakeDetector, Fake VLM(성공/거부/timeout/오류/형식 오류), FakeAlert로 바꾼다.
-- HSV, tracker, temporal confirm, dedup, VLM 파싱, AlertPolicy, event 기록은 **실제 코드**로 실행한다.
-- 입력은 기존 `push_frame()` 경계를 통한 replay(합성 장면, 이미지 파일)다.
+- CARLA 기반 차량 감시, YOLO / HSV / Tracking / VLM pipeline, 4개 Discord agent 구조로 구현했습니다.
+- 발표: 한국자동차공학회 2026 춘계학술대회, 「멀티 AI Agent 커뮤니티 기반 차량 환경 정보 공유 및 상황 인지 시스템」
+- 연구 당시 코드: tag [`research-baseline`](https://github.com/jsy202/UROPCLAW/tree/research-baseline). 당시 README 원문: [docs/original_research_readme.md](docs/original_research_readme.md)
+- 연구 당시 기록된 수치(46,372 / 28,736 / 3,298 / 53)는 측정 단위와 조건을 현재 validation 기준으로 확인할 수 없습니다. 그래서 headline 성과로 쓰지 않고, 아래 validation 결과와도 비교하지 않습니다.
 
-## Key Findings (모두 이번 검증에서 테스트로 재현 → 수정)
-| ID | 결함 | 수정 |
+### Post-project Validation
+
+연구 종료 후 별도로 수행한 검증입니다. 모든 수치는 이 저장소에 커밋된 실행 결과 파일에서 나왔습니다.
+
+- **Experiment A**: 동적 다차량 system integration / stability validation
+- **Experiment B v2**: 10분 연속 감시 4-way ablation (핵심 결과)
+- 검증 중 발견해 수정한 production 결함 2건
+- 이보다 앞서 합성 입력 replay로 수행한 failure-handling 검증 (아래 "Earlier replay-based validation")
+
+전체 문서 목록: [validation/carla_e2e/README.md](validation/carla_e2e/README.md)
+
+## 4. Experiment A: Dynamic Multi-Vehicle System Validation
+
+**질문:** 실제 CARLA 동적 다차량 환경에서 production pipeline이 end-to-end로 정상 동작하는가?
+
+이 실험의 목적은 성능 감소율 측정이 아니라 system integration과 안정성 검증입니다.
+
+**조건**
+- CARLA 0.9.13 Town10HD_Opt, synchronous 0.1 s tick, Real YOLOv8s on RTX 3060
+- 제어 차량 16대(background 15 + probe 1), fixed camera 800×600 FOV 90
+- Target(파란 probe) / Non-target(같은 장면에서 probe 색만 빨강) 각 10회
+- Fake VLM / Fake Alert 사용
+
+**결과**
+
+| | Target | Non-target |
 |---|---|---|
-| U01–U03 | VLM이 fail-open인데 timeout, 프로세스 오류, 파싱 실패가 **지표에 나타나지 않음**(`openclaw_timeouts`가 항상 0). VLM이 장애 상태여도 "모두 확인됨"과 구분되지 않았다 | `f20d51f` |
-| U04 | `alerts_sent`가 전송 전에 증가해서 Discord 실패를 구분할 수 없었다 | `6878cb4` |
-| U05 | candidate 큐 포화가 `frames_dropped`로 집계되어 frame_drop_rate가 부풀려졌다 | `2bfced2` |
-| U06 | 평가 baseline A/B에도 30 s dedup이 적용되었다(`baseline.py` 정의와 다름). B 모드에서 탐지 5건에 VLM 1회 | `0d79f2d` |
+| Success | 10/10 | 10/10 |
+| Target event / false target event | 10 / 0 | 0 / 0 |
 
-fail-open 설계 자체는 유지했다. 이번 수정으로 장애가 지표로 보이게 되었다.
+- 매 run에서 background 15/15대가 실제로 이동했고, 한 frame 최대 YOLO 차량 검출은 4개였습니다.
+- dropped frame 0, crash 0, 매 run actor 17/17 정리.
+- 실행 과정에서 validation harness 결함 9건을 재현하고 수정했습니다. 예: Traffic Manager lifecycle에서 발생한 native abort(exit 134), synchronous sensor frame skip, 구조물 내부에 배치된 카메라.
+- 상세: [validation report](validation/carla_e2e/multivehicle/validation_report.md) · [defects](validation/carla_e2e/multivehicle/evidence/defects/DEF-MV-01-09.md)
 
-## Verification
-- 결함마다 strict xfail 테스트로 먼저 commit한 뒤, 수정 commit에서 PASS로 바꿨다.
-- 장애 주입 14종: VLM timeout, 오류, 형식 오류, 거부, alert 실패와 예외, 탐지 없음, 잘못된 프레임, tracking 공백, 오래된 프레임, frame/candidate 큐 포화, 미션 비활성, baseline 모드.
-- Replay benchmark(Before/After)를 측정했다. **조건: 합성 입력(단색 박스), FakeDetector, 0.2 s 고정 지연 Fake VLM, 기록용 alert. 실제 CARLA, YOLO, VLM, Discord는 쓰지 않았다.** 이 조건에서 baseline B를 정의대로(dedup 없이) 돌리면 VLM 단계가 병목이 되는 것을 관측했다(300 candidate 중 247개 drop). **이 수치는 위 합성 조건의 결과이며 실제 운영 환경의 수치가 아니다.** → [benchmark.md](validation/benchmark.md)
-- 문서: [requirements](validation/requirements.md) · [failure model](validation/failure_model.md) · [test cases](validation/test_cases.md) · [traceability](validation/traceability_matrix.md) · [test report](validation/test_report.md)
+## 5. Experiment B v2: 10-Minute Continuous Monitoring Ablation
 
-## Test Result
-| 테스트 | PASS | XFAIL | FAILED |
-|---|---|---|---|
-| 36 (integration 25, unit 11) | 36 | 0 | 0 |
+**질문:** 동일한 10분 동적 traffic에서 HSV, Temporal Confirmation, Deduplication은 VLM workload에 각각 어떤 영향을 주는가?
 
-Python 3.10, 로컬 실행. 10회 연속 실행에서 매회 같은 결과였다. GitHub Actions 결과는 workflow `tests`를 참고한다.
+**조건**
+- 600 s, 10 Hz, 6,000 input frames/run, 독립 실행 3회
+- TM autopilot 차량 70대, 8색 palette(파랑 9대)
+- Real YOLOv8s를 frame당 한 번만 실행하고, 같은 frame·YOLO 출력·HSV 결과를 네 branch에 동일하게 전달
+- branch마다 tracker / temporal / dedup state를 독립 instance로 운용
+- 실제 VLM은 호출하지 않고 VLM trigger만 집계
 
-## Limitations
-- YOLOv8의 정확도와 지연, 실제 VLM의 품질과 지연, Discord 전송, CARLA 입력은 **검증하지 않았다.**
-- benchmark의 VLM 지연 0.2 s는 인위적인 값이다. 합성 장면은 실제 영상의 난이도를 반영하지 않는다.
-- README와 코드가 다른 부분(정적 확인, 미수정): VLM 호출 조건, timeout 30 s/25 s, Discord 120 s 쿨다운. → [limitations.md](validation/limitations.md)
+**VLM triggers**
 
-## How to Run Tests (CARLA·GPU·VLM·Discord 불필요)
-```bash
-pip install -r requirements-test.txt     # pytest, numpy, opencv-python-headless, requests
-python3 -m pytest
-python3 tools/replay_benchmark.py --modes A B C proposed --frames 150 --repeat 3 --out /tmp/bench.json
-```
+| Configuration | Run 1 | Run 2 | Run 3 | Interpretation |
+|---|---:|---:|---:|---|
+| Full | 19 | 23 | 23 | 최종 production pipeline |
+| No HSV | 142 | 156 | 155 | Full 대비 6.74–7.47배 |
+| No Temporal | 22 | 29 | 29 | Full 대비 1.16–1.26배 |
+| No Dedup | 89 | 126 | 126 | Full 대비 4.68–5.48배 |
 
----
+**Dedup 직전 후보 수**
 
-## Original Research Documentation (연구 당시 README 원문)
+| Configuration | Run 1 | Run 2 | Run 3 | Full 대비 |
+|---|---:|---:|---:|---:|
+| Full | 89 | 126 | 126 | 1.00x |
+| No Temporal | 292 | 407 | 406 | 3.22–3.28x |
 
+**각 단계의 역할** (동일 traffic에 대한 ablation comparison이며, 인과 효과로 단정하지 않습니다)
+- **HSV:** 비대상 색 차량을 VLM 후보에서 제거하는 주된 필터링 단계입니다.
+- **Temporal:** 순간 검출이나 불안정한 후보가 dedup에 도달하기 전에 줄입니다(후보 3.22–3.28배 감소). 최종 trigger 차이(1.16–1.26배)가 작은 이유는, 남은 반복 요청을 dedup이 다시 억제하기 때문입니다.
+- **Dedup:** 같은 target의 반복 VLM 요청을 억제합니다.
 
-> CARLA 시뮬레이터 + YOLOv8 + HSV 색상 필터 + OpenClaw (Discord AI 봇) 를 결합한  
-> 실시간 차량 탐지 및 Discord 경보 시스템
+6,000 frame과 19–23 trigger 사이의 차이를 하나의 "필터링 효과"로 묶지 않았습니다. 각 단계는 서로 다른 종류의 요청을 줄입니다.
 
----
+**Target coverage (Full pipeline)**
 
-## 목차
+| Stage | Run 1 | Run 2 | Run 3 |
+|---|---:|---:|---:|
+| Entered FOV | 9 | 9 | 9 |
+| YOLO detected | 9 | 9 | 9 |
+| HSV passed | 9 | 9 | 9 |
+| Tracked | 9 | 9 | 9 |
+| Confirmed | 9 | 9 | 9 |
+| VLM reached | 9 | 9 | 9 |
 
-1. [프로젝트 개요](#1-프로젝트-개요)
-2. [시스템 아키텍처](#2-시스템-아키텍처)
-3. [주요 기능](#3-주요-기능)
-4. [프로젝트 구조](#4-프로젝트-구조)
-5. [사전 요구사항](#5-사전-요구사항)
-6. [빠른 시작](#6-빠른-시작)
-7. [Discord 사용법](#7-discord-사용법)
-8. [평가 베이스라인](#8-평가-베이스라인)
-9. [환경 변수](#9-환경-변수)
-10. [파이프라인 상세](#10-파이프라인-상세)
+- 다른 target의 cooldown 때문에 차단된 target: 0
+- stale-track confirmation 후보 0, stale-track VLM trigger 0
+- 모든 trigger bbox가 해당 frame의 실제 detection이었습니다.
+- 상세: [validation report](validation/carla_e2e/continuous_ablation_v2/validation_report.md) · [before/after](validation/carla_e2e/continuous_ablation_v2/before_after_summary.csv) · [target funnel](validation/carla_e2e/continuous_ablation_v2/target_actor_funnel.csv)
 
----
+## 6. Production Defects Found and Fixed
 
-## 1. 프로젝트 개요
+Experiment B v1 결과를 분석하다가 production logic의 결함 2건을 발견했습니다. 수정은 [`a25c6ae`](https://github.com/jsy202/UROPCLAW/commit/a25c6ae)에 있으며, 회귀 테스트([tests/unit/test_dedup_and_stale_tracks.py](tests/unit/test_dedup_and_stale_tracks.py))는 수정 전 코드에서 실패하고 수정 후 통과합니다.
 
-UROPCLAW는 CARLA 자율주행 시뮬레이터 환경에서 **특정 색상의 차량을 자동 탐지**하고, 탐지 결과를 **Discord 채널에 한국어로 실시간 보고**하는 AI 멀티에이전트 감시 시스템입니다.
+### Stale Track Confirmation
 
-### 핵심 시나리오
+- **문제:** `YoloWorker`가 이번 frame에서 매칭되지 않은(disappeared) track까지 `TemporalConfirm.update`에 넣고 있었습니다.
+- **영향:** 사라진 track이 마지막 색으로 계속 투표해 confirmation을 통과했고, 과거 bbox로 현재 frame을 crop해 빈 도로 이미지가 VLM 후보가 될 수 있었습니다. v1 Run 3 기준 Full 후보 88/215개, trigger 4/11개가 stale track에서 나왔습니다.
+- **수정:** `disappeared == 0`인, 이번 frame에서 매칭된 track만 temporal evidence를 갱신합니다. 그 결과 후보 bbox는 항상 현재 frame의 detection bbox입니다.
+- **결과:** stale 후보 0, stale trigger 0. Full trigger crop 65장 모두에 실제 차량이 있습니다.
 
-```
-사용자 (Discord) → 감시 명령 → AI 에이전트 수신 → mission.json 활성화
-                                                         ↓
-CARLA 시뮬레이터 → 카메라 피드 → YOLOv8 탐지 → HSV 색상 필터
-                                                         ↓
-                              탐지 이벤트 → Discord 경보 전송 ←
-```
+### Global Dedup Cooldown
 
-- **사용자**는 Discord에서 아무 에이전트에게나 한국어로 명령합니다.
-- **4개의 AI 에이전트(uropclaw1~4)**가 각자의 카메라 구역을 독립적으로 감시합니다.
-- 목표 차량이 카메라에 잡히면 즉시 Discord로 경보를 보냅니다.
+- **문제:** camera agent 하나에 30초 cooldown 하나만 적용돼, 서로 다른 target도 30초 안에 나타나면 차단됐습니다. v1에서는 target 차량 9대 중 5–6대만 VLM에 도달했습니다.
+- **수정:** target(track) 단위 30초 cooldown으로 바꿨습니다. 새 track은 다음 조건을 모두 만족할 때만 같은 차량의 분할 track으로 보고 억제합니다.
+  - confirmed 색이 같음
+  - 해당 target의 마지막 후보로부터 2.0초 이내 (tracker의 기존 reconnect window 값)
+  - 중심이 box 대각선 길이 이내
+- production에서 실제로 얻을 수 있는 정보(camera, track, 색, bbox, 시간)만 사용하고, CARLA actor ID는 쓰지 않습니다.
+- **결과:** target coverage가 5–6/9에서 9/9로 개선됐고, 다른 차량의 cooldown 때문에 차단된 target은 0입니다.
 
----
+수정 전(v1)과 수정 후(v2)는 서로 다른 실행이며 traffic이 bit 단위로 같지 않습니다. 그래서 절대값 비교보다 각 run 안의 branch 비교를 우선했습니다.
 
-## 2. 시스템 아키텍처
+## 7. Evidence
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                       CARLA 시뮬레이터                               │
-│  Town03_Opt / Town05 맵 — 동기화 모드 (20 FPS)                       │
-│                                                                     │
-│  [Observer Vehicle 1]  [Observer Vehicle 2]                         │
-│     uropclaw1 탑승         uropclaw2 탑승                            │
-│  [Observer Vehicle 3]  [Observer Vehicle 4]                         │
-│     uropclaw3 탑승         uropclaw4 탑승                            │
-│                                                                     │
-│  [배경 NPC 20대]  [목표 색상 차량 2대]                                │
-└─────────────┬───────────────────────────────────────────────────────┘
-              │ 카메라 프레임 (1280×720, 4방향)
-              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                    harness / Pipeline (5스레드)                      │
-│                                                                     │
-│  Thread-1: CarlaTickThread  — world.tick() 동기화                   │
-│  Thread-2: YoloWorker       — YOLOv8s 추론 + HSV 색상 필터          │
-│                               IoU 트래커 + 시간적 확인(3프레임)       │
-│  Thread-3: OpenClawWorker   — 차종 검증 요청 (body_type 지정 시)     │
-│  Thread-4: AlertWorker      — detection_event.json 작성             │
-│  Thread-5: MetricsWriter    — 5초마다 metrics.json 갱신             │
-└─────────────┬───────────────────────────────────────────────────────┘
-              │ detection_event.json
-              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│              OpenClaw Gateway (Docker, port 18795)                   │
-│                                                                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
-│  │uropclaw1 │  │uropclaw2 │  │uropclaw3 │  │uropclaw4 │           │
-│  │ AI 봇   │  │ AI 봇   │  │ AI 봇   │  │ AI 봇   │           │
-│  │Zone 1   │  │Zone 2   │  │Zone 3   │  │Zone 4   │           │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘           │
-│       └──────────────┴─────────────┴──────────────┘                 │
-│                              Discord                                  │
-└─────────────────────────────────────────────────────────────────────┘
-```
+| | |
+|---|---|
+| ![Dynamic traffic, 4 YOLO detections](validation/carla_e2e/multivehicle/evidence/smoke/max_detections_annotated.png)<br/>Experiment A: 동적 traffic, 한 frame 최대 4대 검출 | ![Target HSV pass](validation/carla_e2e/continuous_ablation_v2/evidence/runs/run2/evidence/stages/actor005_2_hsv_passed.jpg)<br/>Experiment B v2: target 차량 HSV blue 통과 |
+| ![Temporal confirmation](validation/carla_e2e/continuous_ablation_v2/evidence/runs/run2/evidence/stages/actor005_4_confirmed.jpg)<br/>Temporal confirmation (흰 box = CARLA ground truth) | ![VLM trigger](validation/carla_e2e/continuous_ablation_v2/evidence/runs/run2/evidence/stages/actor005_5_vlm_reached.jpg)<br/>VLM trigger (현재 frame의 detection bbox) |
+| ![Duplicate suppressed](validation/carla_e2e/continuous_ablation_v2/evidence/runs/run2/evidence/dedup_suppressed/same_target_cooldown_1_f0309.jpg)<br/>같은 target의 반복 요청 억제 | ![New target allowed](validation/carla_e2e/continuous_ablation_v2/evidence/runs/run2/evidence/new_target_within_30s/f1035_t65.jpg)<br/>다른 target이 직전 trigger 3.5초 뒤 VLM에 정상 도달 (이전 정책에서는 차단) |
 
-### 에이전트 역할
+Stale track 수정 전/후: [수정 전 빈 도로 crop](validation/carla_e2e/continuous_ablation_v2/evidence/before_after/before_v1_run2_full_stale_trigger_f1300_t77.jpg) · [수정 후 전체 Full trigger crop](validation/carla_e2e/continuous_ablation_v2/evidence/before_after/after_v2_all_full_trigger_crops.jpg)
 
-| 에이전트 | 역할 | 담당 구역 |
-|---------|------|---------|
-| uropclaw1 | 독립 감시 모니터 (Zone 1) | x≈245, y≈0 (동부) |
-| uropclaw2 | 독립 감시 모니터 (Zone 2) | x≈-145, y≈-8 (서부) |
-| uropclaw3 | 독립 감시 모니터 (Zone 3) | x≈-26, y≈-8 (중앙) |
-| uropclaw4 | 독립 감시 모니터 (Zone 4) | x≈-149, y≈107 (북서부) |
+## 8. Remaining Limitations
 
-> **모든 에이전트는 동등한 권한을 가집니다.** 사용자는 어느 에이전트에게나 명령할 수 있으며,  
-> 명령을 받은 에이전트가 `mission.json`을 활성화합니다.
+- **실험 범위:** map 1개, camera pose 1개, traffic 구성 1개 중심이며, 다른 map·날씨·조명·카메라 조건으로 일반화할 수 없습니다.
+- **재현성:** 3회 실행은 서로 bit 단위로 같지 않습니다. 렌더링/추론 차이와 Traffic Manager 차이 때문이며, 3회로는 신뢰구간을 낼 수 없습니다.
+- **VLM:** Experiment B는 VLM trigger만 집계했고 실제 VLM을 호출하지 않았습니다. Real VLM의 정확도와 지연은 측정하지 않았습니다.
+- **Track fragmentation:** 차량이 거리 배너 뒤를 지나며 track이 끊기면, 같은 차량이 다시 trigger되는 경우가 run당 4–5건 남았습니다. 완전히 해결하려면 appearance-based Re-ID가 필요하지만, 이번 범위를 넘어 limitation으로 관리했습니다. 연속성 규칙의 threshold는 결과를 보고 조정하지 않았습니다.
+- **재방문:** Re-ID가 없기 때문에 30초 이후 다시 나타난 같은 차량은 새 요청이 됩니다(run별 4–9건).
+- **Ground truth 라벨:** `vehicle.micro.microlino`는 지정한 색과 무관하게 몸체가 파랗게 렌더링되어, ground truth 상 non-target으로 분류된 차량이 실제로는 파란색이었습니다(crop으로 확인).
+- **Latency:** synchronous CARLA에서 측정한 처리 시간은 실제 도로 환경의 실시간 latency가 아닙니다.
+- **YOLO weight:** 원래 연구 weight를 쓸 수 없어, 새로 받은 pretrained YOLOv8s를 사용했습니다.
 
----
+상세: [Experiment B v2 limitations](validation/carla_e2e/continuous_ablation_v2/limitations.md) · [Experiment A limitations](validation/carla_e2e/multivehicle/limitations.md)
 
-## 3. 주요 기능
+## Earlier replay-based validation
 
-### 🔍 YOLOv8 차량 탐지
-- 모델: `yolov8s.pt` (경량 모델)
-- 탐지 대상: 승용차(car), 오토바이(motorcycle), 버스(bus), 트럭(truck)
-- 신뢰도 임계값: 0.40 / IoU 임계값: 0.45
+CARLA 실험에 앞서, 합성 입력 replay와 Fake detector / VLM / Alert로 pipeline의 데이터 전달과 장애 처리를 검증했습니다. 이 과정에서 지표 결함 6건(U01–U06)을 테스트로 재현하고 수정했습니다. 예를 들어 VLM timeout과 오류가 지표에 나타나지 않던 문제, 평가 baseline에 dedup이 잘못 적용되던 문제입니다. 이 결과는 합성 조건의 결과이며 실제 운영 수치가 아닙니다.
+[test report](validation/test_report.md) · [benchmark](validation/benchmark.md) · [limitations](validation/limitations.md)
 
-### 🎨 HSV 색상 필터
-- 8가지 색상 분류: 빨간색, 파란색, 초록색, 노란색, 흰색, 검은색, 회색/은색, 주황색
-- 바운딩박스의 **중앙 60%** 영역만 분석 (상하 20% 제거로 하늘·도로 노이즈 제거)
-- 최소 픽셀 비율 15% 미만은 `unknown`으로 처리
-
-### 📦 IoU 트래커 + 시간적 확인
-- **IoU 트래커**: 탐지 간 Intersection-over-Union으로 동일 차량 추적 (임계값 0.30)
-- **재연결 로직**: 일시적으로 사라진 차량을 2초 내 재연결 (이전 트랙 ID 복원)
-- **시간적 확인(TemporalConfirm)**: 연속 3프레임에서 동일 색상이 60% 이상이어야 후보 승격
-
-### 🤖 OpenClaw AI 검증 (body_type 지정 시)
-- 사용자가 차종(세단, SUV 등)을 명시한 경우에만 AI 검증 요청
-- `verification_request.json` → AI 분석 → `verification_response.json`
-- 타임아웃: 30초
-
-### 🔔 Discord 경보
-- 탐지 이벤트 발생 시 해당 구역 에이전트가 Discord에 한국어로 보고
-- 탐지된 차량 이미지 크롭 첨부
-- 중복 경보 억제: 동일 트랙 30초 / Discord 알림 120초 쿨다운
-
-### 📊 평가 메트릭
-- `frames_received`, `frames_processed`, `frame_drop_rate`
-- `openclaw_call_reduction_rate` (핵심 지표: OpenClaw 호출 절감률)
-- `avg_yolo_latency_ms`, `pipeline_fps`
-- 4가지 베이스라인 비교 지원
-
----
-
-## 4. 프로젝트 구조
-
-```
-uropclaw-docker/
-│
-├── docker-compose.yml          # OpenClaw 게이트웨이 컨테이너 정의
-├── Dockerfile                  # Node.js 24 기반 OpenClaw 이미지
-├── entrypoint.sh               # 환경변수 검증 후 OpenClaw 게이트웨이 실행
-├── openclaw.json               # 에이전트 4개 설정 (Discord 연결, 모델 설정)
-├── .env.example                # 환경변수 템플릿
-│
-├── harness/                    # Python 감시 파이프라인
-│   ├── harness.py              # 메인 엔트리포인트 (CCTV 고정 카메라 모드)
-│   ├── start.py                # 시나리오 스크립트 (차량 탑승 카메라 모드)
-│   ├── config.py               # 전역 설정 (경로, CARLA 파라미터, 카메라)
-│   ├── requirements.txt        # Python 패키지
-│   │
-│   ├── core/                   # 파이프라인 핵심
-│   │   ├── pipeline.py         # 5스레드 파이프라인 (핵심)
-│   │   ├── mission.py          # mission.json 읽기/쓰기
-│   │   ├── orchestrator.py     # 에이전트 오케스트레이터
-│   │   ├── session_store.py    # 세션 DB
-│   │   └── state.py            # 공유 상태
-│   │
-│   ├── perception/             # 컴퓨터 비전
-│   │   ├── yolo_detector.py    # YOLOv8 추론 래퍼
-│   │   ├── color_filter.py     # HSV 색상 분류 (8색)
-│   │   ├── iou_tracker.py      # IoU 기반 다중 객체 추적
-│   │   ├── temporal_confirm.py # 3프레임 다수결 확인
-│   │   └── deduplicator.py     # 중복 경보 억제
-│   │
-│   ├── sensors/                # CARLA 센서 관리
-│   │   ├── camera.py           # 카메라 부착 / 프레임 수집
-│   │   └── manager.py          # CARLA 연결 / NPC 스폰 / 맵 로드
-│   │
-│   ├── policy/
-│   │   └── alert_policy.py     # 경보 발송 정책 (미션 일치 여부 확인)
-│   │
-│   ├── evaluation/
-│   │   ├── metrics.py          # 메트릭 수집 / JSON 저장
-│   │   └── baseline.py         # 4가지 베이스라인 모드 정의
-│   │
-│   ├── gateway/
-│   │   └── proxy.py            # CARLA Proxy API (FastAPI)
-│   │
-│   └── obs/
-│       ├── logger.py           # 이벤트 로거
-│       └── evaluator.py        # 평가 리포트 생성
-│
-└── workspaces/                 # 에이전트별 작업 공간 (Docker 볼륨)
-    ├── uropclaw1/
-    │   ├── CLAUDE.md           # 에이전트 시스템 프롬프트
-    │   ├── state/
-    │   │   ├── mission.json          # 현재 미션 (active/target_color 등)
-    │   │   ├── detection_event.json  # 최신 탐지 이벤트
-    │   │   └── metrics.json          # 파이프라인 메트릭
-    │   └── skills/
-    │       └── carla-detect/SKILL.md  # 감시 명령 처리 스킬
-    ├── uropclaw2/  (동일 구조)
-    ├── uropclaw3/  (동일 구조)
-    └── uropclaw4/  (동일 구조)
-```
-
----
-
-## 5. 사전 요구사항
-
-| 구성요소 | 버전 | 비고 |
-|---------|------|------|
-| CARLA | 0.9.13 ~ 0.9.14 | UE4 기반 자율주행 시뮬레이터 |
-| Python | 3.10+ | harness 실행 환경 |
-| Docker + Docker Compose | 최신 | OpenClaw 게이트웨이 컨테이너 |
-| NVIDIA GPU | 권장 | YOLOv8 추론 가속 |
-| OpenClaw | npm 최신 | AI 봇 프레임워크 |
-| Discord 봇 4개 | — | uropclaw1~4 각각의 토큰 필요 |
-
----
-
-## 6. 빠른 시작
-
-### Step 1. CARLA 서버 실행
+## Tests
 
 ```bash
-# GUI 모드
-./CarlaUE4.sh
-
-# 헤드리스 (디스플레이 없는 서버)
-./CarlaUE4.sh -RenderOffScreen
-
-# Docker 이미지 사용 시
-docker run --privileged --gpus all --net=host \
-  carlasim/carla:0.9.14 ./CarlaUE4.sh -RenderOffScreen
+pip install -r requirements-test.txt
+python3 -m pytest          # 119 passed, 1 skipped (CARLA·GPU·VLM·Discord 불필요)
 ```
 
-CARLA가 포트 **2000**에서 준비될 때까지 대기합니다.
+skip된 1건은 수정 전 production logic을 재현하던 v1 shadow branch의 과거 equivalence test로, 사유를 테스트 안에 명시했습니다. CARLA host 실행 방법은 [validation/carla_e2e/README.md](validation/carla_e2e/README.md)에 있습니다.
 
----
+## What I Validated
 
-### Step 2. 환경 변수 설정
+- CARLA 동적 다차량 감시 환경에서 YOLO → HSV → Tracking → Temporal → Dedup pipeline을 end-to-end로 검증했습니다(Target 10/10, Non-target 10/10).
+- 10분 연속 6,000-frame 실험에서 동일 입력 4-way ablation을 설계했습니다. HSV 제거 시 VLM trigger가 6.74–7.47배, Dedup 제거 시 4.68–5.48배, Temporal 제거 시 dedup 직전 후보가 3.22–3.28배 늘어남을 측정했습니다.
+- 검증 과정에서 stale track confirmation과 global dedup cooldown 결함을 발견해 production 코드를 수정했고, 수정 후 3회 모두에서 target coverage 9/9와 stale trigger 0을 확인했습니다.
+- 남은 한계(track fragmentation, Re-ID 부재, 단일 scene)는 숨기지 않고 수치와 함께 기록했습니다.
 
-```bash
-cd uropclaw-docker
-cp .env.example .env
-```
+## License
 
-`.env` 파일을 열어 실제 값으로 수정합니다:
-
-```env
-DISCORD_BOT_TOKEN_UROPCLAW1=your_token_here
-DISCORD_BOT_TOKEN_UROPCLAW2=your_token_here
-DISCORD_BOT_TOKEN_UROPCLAW3=your_token_here
-DISCORD_BOT_TOKEN_UROPCLAW4=your_token_here
-
-OPENCLAW_MODEL=openai-codex/gpt-5.5   # 또는 google/gemini-2-flash
-
-CARLA_HOST=localhost
-CARLA_PORT=2000
-CARLA_MAP=Town03_Opt
-BG_VEHICLE_COUNT=20
-TARGET_VEHICLE_COUNT=2
-RANDOM_SEED=42
-```
-
----
-
-### Step 3. OpenClaw 게이트웨이 실행
-
-```bash
-docker compose up -d --build
-
-# 봇 4개가 Discord에 연결됐는지 확인
-docker compose logs -f
-```
-
-정상 출력 예:
-```
-discord gateway metrics: {"latency":190,"reconnects":0,...}
-discord gateway metrics: {"latency":192,"reconnects":0,...}
-```
-
----
-
-### Step 4. Python 의존성 설치
-
-```bash
-cd harness
-pip install -r requirements.txt
-
-# CARLA Python API (CARLA 설치 경로에 맞게 조정)
-pip install /path/to/CARLA/PythonAPI/carla/dist/carla-*.whl
-```
-
----
-
-### Step 5. 감시 파이프라인 실행
-
-**시나리오 모드** (차량에 카메라 탑재 — 권장):
-```bash
-cd harness
-python start.py --target-color blue --bg-count 20
-```
-
-**CCTV 고정 카메라 모드**:
-```bash
-python harness.py --map Town03_Opt --target-color blue --bg-count 20
-```
-
-**순찰 모드** (observer 차량이 자율주행하며 감시):
-```bash
-python start.py --target-color blue --patrol
-```
-
----
-
-### Step 6. Discord에서 명령
-
-```
-@uropclaw2 파란 차량 보이면 알려줘
-@uropclaw3 빨간 SUV 추적해줘
-@uropclaw1 감시 그만해
-```
-
----
-
-## 7. Discord 사용법
-
-### 감시 명령
-
-아무 에이전트에게나 멘션하여 감시 명령을 보냅니다.
-
-```
-@uropclaw1 파란 차량 도주했다 보이면 답장
-@uropclaw3 빨간 세단 놓쳤는데 찾아줘
-@uropclaw4 흰색 SUV 있으면 알려줘
-```
-
-### 지원 색상
-
-| 한국어 | 영어 |
-|-------|------|
-| 파란/파랑/파란색 | blue |
-| 빨간/빨강/빨간색 | red |
-| 흰/흰색/하얀 | white |
-| 검은/검정/검은색 | black |
-| 초록/녹색 | green |
-| 노란/노랑 | yellow |
-| 회색/은색 | gray_silver |
-| 주황/주황색 | orange |
-
-### 지원 차종 (선택사항)
-
-| 한국어 | 영어 |
-|-------|------|
-| 세단 | sedan |
-| SUV / 에스유브이 | suv |
-| 트럭 / 화물차 | truck |
-| 버스 | bus |
-| 밴 / 승합차 | van |
-| 오토바이 / 바이크 | motorcycle |
-| 스포츠카 | sports_car |
-
-### 감시 중단
-
-```
-@uropclaw2 그만
-@uropclaw2 중단
-@uropclaw2 멈춰
-```
-
-### 경보 형식
-
-탐지 시 담당 에이전트가 다음 형식으로 Discord에 보고합니다:
-
-```
-🚨 [구역2 카메라] 차량 포착
-━━━━━━━━━━━━━━━━━━━━
-색상: 파란색
-차종: 승용차
-신뢰도: 87%
-색상 일치도: 92%
-포착 시각: 2026-05-07 18:23:11
-━━━━━━━━━━━━━━━━━━━━
-[차량 이미지 첨부]
-```
-
----
-
-## 8. 평가 베이스라인
-
-성능 비교를 위한 4가지 모드를 지원합니다:
-
-```bash
-python start.py --baseline A         # 매 30번째 프레임만 OpenClaw 전달 (무작위)
-python start.py --baseline B         # YOLO만 사용, 색상 필터 없음
-python start.py --baseline C         # YOLO + 색상 필터, OpenClaw 없음
-python start.py --baseline proposed  # 전체 파이프라인 (기본값)
-```
-
-| 모드 | YOLO | 색상 필터 | IoU 트래커 | 시간적 확인 | OpenClaw 검증 |
-|------|------|---------|-----------|-----------|--------------|
-| A | ✗ | ✗ | ✗ | ✗ | ✗ |
-| B | ✓ | ✗ | ✗ | ✗ | ✓ |
-| C | ✓ | ✓ | ✓ | ✓ | ✗ |
-| proposed | ✓ | ✓ | ✓ | ✓ | ✓ (차종 지정 시) |
-
-### 핵심 평가 지표
-
-- **OpenClaw 호출 절감률** = 1 − (openclaw_calls / frames_processed)
-  - proposed 모드가 베이스라인 대비 얼마나 AI 호출을 줄이는지 측정
-- **프레임 드롭률** = frames_dropped / frames_received
-- **파이프라인 FPS** = frames_processed / uptime_seconds
-
----
-
-## 9. 환경 변수
-
-| 변수 | 기본값 | 설명 |
-|------|-------|------|
-| `DISCORD_BOT_TOKEN_UROPCLAW1` | — | uropclaw1 Discord 봇 토큰 (필수) |
-| `DISCORD_BOT_TOKEN_UROPCLAW2` | — | uropclaw2 Discord 봇 토큰 (필수) |
-| `DISCORD_BOT_TOKEN_UROPCLAW3` | — | uropclaw3 Discord 봇 토큰 (필수) |
-| `DISCORD_BOT_TOKEN_UROPCLAW4` | — | uropclaw4 Discord 봇 토큰 (필수) |
-| `OPENCLAW_MODEL` | `google/gemini-3-flash-preview` | AI 모델 |
-| `CARLA_HOST` | `localhost` | CARLA 서버 호스트 |
-| `CARLA_PORT` | `2000` | CARLA 서버 포트 |
-| `CARLA_MAP` | `Town05` | 로드할 CARLA 맵 |
-| `BG_VEHICLE_COUNT` | `20` | 배경 NPC 차량 수 |
-| `TARGET_VEHICLE_COUNT` | `2` | 목표 색상 차량 수 |
-| `RANDOM_SEED` | `42` | 재현성을 위한 시드 |
-
----
-
-## 10. 파이프라인 상세
-
-### 5스레드 구조
-
-```
-frame_queue ──▶ [YoloWorker]
-                     │ 탐지 결과 + 색상 확인
-                     ▼
-              candidate_queue ──▶ [OpenClawWorker]
-                                       │ AI 검증 (차종 지정 시)
-                                       ▼
-                                  result_queue ──▶ [AlertWorker]
-                                                        │ detection_event.json 작성
-                                                        ▼
-                                                   Discord 에이전트 경보
-```
-
-### 데이터 흐름 (JSON 파일 IPC)
-
-```
-mission.json          ← AI 에이전트가 활성화 (active: true, target_color)
-detection_event.json  ← AlertWorker가 탐지 시 작성
-metrics.json          ← MetricsWriter가 5초마다 갱신
-verification_request.json  ← OpenClawWorker가 차종 검증 요청 작성
-verification_response.json ← AI 에이전트가 검증 결과 작성
-```
-
-### 카메라 설정
-
-각 observer 차량에 4방향 카메라 부착:
-
-| 방향 | 오프셋 | 시야각 |
-|------|-------|-------|
-| front | (2.5, 0, 1.2m), pitch -5° | 90° |
-| rear | (-2.5, 0, 1.2m), pitch -5° | 90° |
-| left | (0, -1.0, 1.5m), yaw -90° | 90° |
-| right | (0, 1.0, 1.5m), yaw +90° | 90° |
-
-해상도: **1280 × 720**
-
-### 색상 필터 HSV 범위
-
-```python
-"red":         H(0-10 | 165-179),  S(60-255), V(40-220)
-"blue":        H(95-135),           S(60-255), V(30-220)
-"green":       H(35-85),            S(50-255), V(30-210)
-"yellow":      H(18-38),            S(80-255), V(80-255)
-"white":       H(0-179),            S(0-45),   V(160-255)
-"black":       H(0-179),            S(0-255),  V(15-65)
-"gray_silver": H(0-179),            S(0-45),   V(65-160)
-"orange":      H(10-20),            S(100-255),V(60-230)
-```
-
----
-
-## 라이선스
-
-이 프로젝트는 연구/교육 목적으로 제작되었습니다.  
-CARLA 시뮬레이터는 [CARLA 라이선스](https://carla.org/), YOLOv8은 [AGPL-3.0](https://github.com/ultralytics/ultralytics)을 따릅니다.
+연구/교육 목적으로 제작했습니다. CARLA는 [CARLA 라이선스](https://carla.org/), YOLOv8은 [AGPL-3.0](https://github.com/ultralytics/ultralytics)을 따릅니다.
