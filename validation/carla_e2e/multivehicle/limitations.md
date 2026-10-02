@@ -1,26 +1,57 @@
 # Limitations
 
-- No multi-vehicle result exists until the host smoke is executed and passes.
-- The corridor is topology-derived at runtime; an unsuitable map topology or
-  occupied spawn points causes a recorded FAIL rather than a reduced scene.
-- Traffic Manager determinism can still be affected by uncontrolled actors
-  already present in the host world. Their count is recorded and they are not
-  deleted.
-- CARLA 0.9.13 does not expose a Traffic Manager synchronous-mode getter used by
-  this runner. The original TM mode therefore cannot be observed; cleanup sets
-  TM synchronous mode to `False`, the standard CARLA validation shutdown
-  pattern. World `synchronous_mode`, `fixed_delta_seconds`, and
-  `no_rendering_mode` are independently restored to their captured primitive
-  values even when the validation body raises.
-- Probe FOV visibility and actor/track association use geometric projection and
-  IoU for evaluation only; they are not a replacement for perception ground
-  truth and never affect production decisions.
-- The tracker diagnostics use projected actor boxes and can report ambiguous
-  associations under occlusion.
-- E2E event latency is not produced by this smoke runner. It remains a full
-  benchmark metric after the smoke gate passes.
-- The camera readiness gate permits up to ten setup ticks before the fixed
-  fifty-tick pre-roll. Readiness ticks are recorded and excluded from pre-roll
-  and measurement counters.
-- Fake VLM and Fake Alert results do not measure Real VLM or real notification
-  service behavior.
+## Scope
+
+- Simulation only: CARLA 0.9.13 Town10HD_Opt at low render quality. Not
+  real-road, real-camera, or real-vehicle validation.
+- One deterministic scene (seed 42, one corridor, one camera pose, one probe
+  blueprint `vehicle.tesla.model3`) replayed in every run. Repetitions measure
+  run-to-run stability of the system on that scene, not generalisation across
+  scenes, maps, weather, lighting, or camera poses.
+- Fake VLM always confirms and Fake Alert always delivers. Neither the Real VLM
+  nor a real notification service is measured. Target events therefore reflect
+  the production path up to and including AlertPolicy with a deterministic
+  VLM verdict.
+- A newly obtained pretrained YOLOv8s weight is used (the original research
+  weight is unavailable).
+
+## Scene construction choices (validation-only, measured reasons in DEF-MV-03..09)
+
+- The corridor is restricted to straight (<= 10 deg yaw spread), junction-free
+  80 m road with verified line of sight. Curved roads, junction behaviour and
+  probe interaction with cross-traffic are therefore not exercised by the probe
+  (background vehicles still drive through junctions).
+- The probe uses TM autopilot without `set_path` and with lane changes
+  disabled; adherence is measured (max deviation reported per run) rather than
+  enforced.
+- The camera captures every 0.1 s synchronous tick (`sensor_tick=0.0`), i.e.
+  10 Hz, instead of `sensor_tick=0.1`, which skipped synchronous ticks.
+- Wall-clock latency is measured while CARLA is paused between synchronous
+  ticks; it reflects pipeline processing time for a frame, not real-time
+  streaming under a free-running simulator.
+
+## Measurement
+
+- Probe FOV visibility and actor/track association use geometric projection of
+  CARLA bounding boxes and IoU, without occlusion. They are evidence only and
+  never affect production decisions. Street furniture (banners, lamp posts)
+  occludes part of the view, so projected visibility can precede actual
+  visibility.
+- Real YOLO false positives occur in this scene (e.g. a "truck" box over a
+  street banner/lamp post in `evidence/smoke/max_detections_annotated.png`);
+  they are counted in `yolo_detections` like any other box.
+- Track fragmentation is real: in every benchmark run the probe appears as two
+  production track IDs (9 and 12). Temporal confirmation keeps emitting for a
+  confirmed track, so each Target run raises 15 blue candidates; the production
+  deduplicator suppresses 14 and one reaches Fake VLM/AlertPolicy. Hence there
+  is exactly one probe E2E alert sample per Target run (10 in total).
+- All 10 repetitions per scenario produced identical perception counts; the
+  repetitions show stability and latency variation on one deterministic scene,
+  not independent accuracy samples.
+- E2E samples end at the first temporal confirmation's colour rejection or at
+  AlertPolicy allow; dedup-suppressed or AlertPolicy-rejected candidates have no
+  terminal sample. Sample counts per subset are reported with every statistic.
+- CARLA 0.9.13 has no TM synchronous-mode getter; cleanup sets TM synchronous
+  mode to `False`. World settings are restored to their captured values.
+- Historical 46,372 / 28,736 / 3,298 / 53 values are not compared with these
+  measurements because their units are not established as identical.
