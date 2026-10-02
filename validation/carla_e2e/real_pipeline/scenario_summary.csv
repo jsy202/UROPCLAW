@@ -1,0 +1,1 @@
+scenario,repetitions,successes,success_rate,sample_count,mean_ms,p50_ms,p95_ms,p99_ms,max_ms,at_or_below_1000,over_1000,compliance_rate,input_frames,yolo_detections,unique_tracks,confirmed_tracks,vlm_requests,target_events,max_queue_depth,drops

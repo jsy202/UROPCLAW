@@ -1,6 +1,6 @@
 # CARLA E2E Environment
 
-Status: **CARLA camera and one-frame CUDA YOLO smoke PASS; positive/steady-state gate pending**
+Status: **CARLA camera, one-frame CUDA YOLO smoke, and positive/steady-state gate PASS; full E2E host repetitions pending**
 
 Observed on 2026-10-03 (Asia/Seoul).
 
@@ -21,6 +21,7 @@ Observed on 2026-10-03 (Asia/Seoul).
 | CARLA world | `Carla/Maps/Town10HD_Opt` |
 | RGB camera smoke | PASS — 10 frames, 800×600, first-frame PNG saved |
 | One-frame CUDA YOLO smoke | PASS — 800×600 CARLA frame, CUDA device, detector contract; zero boxes |
+| Positive/steady-state gate | PASS — 10 excluded warm-up frames, 50 measured frames, vehicle detection in 60/60 frames |
 
 No NVIDIA driver, CUDA toolkit, system Python package, or system-wide dependency was installed or changed.
 
@@ -69,4 +70,4 @@ Required disclosure: **Post-project CARLA validation used a newly obtained pretr
 
 The server was started independently in the normal host environment with `-RenderOffScreen -quality-level=Low`. The host runner connected to `127.0.0.1:2000`, observed matching 0.9.13 client/server versions, queried `Town10HD_Opt`, spawned an RGB camera, received ten 800×600 frames, saved a PNG, and destroyed the sensor. The runner returned exit code 0. Raw evidence is under `evidence/host_smoke/`.
 
-The camera portion and one-frame CUDA inference portion are PASS. The first inference took 3,806.716 ms and returned zero raw boxes; it is treated only as cold-start evidence and not as representative performance. The positive-detection and warm-up/steady-state gate remains pending. No CARLA E2E benchmark measurements have been collected.
+The camera portion, one-frame CUDA inference, and positive/steady-state gate are PASS. The first inference took 3,806.716 ms and returned zero raw boxes; it is treated only as cold-start evidence and not as representative performance. With ten warm-up frames excluded, the 50-frame steady-state inference distribution was mean 23.675 ms, p50 24.041 ms, p95 27.343 ms, and maximum 28.142 ms. The controlled vehicle was detected in 60/60 frames and converted to the production `Detection` contract. These are detector-gate values, not full-pipeline E2E results. Full E2E benchmark measurements have not yet been collected.
