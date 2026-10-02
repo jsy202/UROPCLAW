@@ -1,0 +1,2 @@
+scenario,sample_count,mean_ms,p95_ms,max_ms,over_1000_count,status
+all,0,not_measured,not_measured,not_measured,not_measured,BLOCKED
