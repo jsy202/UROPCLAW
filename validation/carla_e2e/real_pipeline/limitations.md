@@ -12,6 +12,10 @@
   Frames without a terminal event decision remain in frame/detection/drop
   counts but not the latency distribution; therefore the one-second result
   must not be generalized to every camera frame.
+- Frame-level HSV pass means a supported non-`unknown` colour, not equality to
+  the active mission colour. The production pipeline does not discard
+  `unknown` classifications before IoU tracking, so HSV-pass and tracking
+  frames are observed stages rather than guaranteed mathematical subsets.
 - Queue depth is sampled every 10 ms and may miss shorter transients. Ending
   depth and production drop counters are also recorded.
 - Timeout injection raises the same `subprocess.TimeoutExpired` handled by the

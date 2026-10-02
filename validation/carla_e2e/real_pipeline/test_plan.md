@@ -49,3 +49,21 @@ thresholds are unchanged.
 Real VLM is outside this runner. It remains `BLOCKED` unless authentication and
 cost authorization can be confirmed separately, and it must never be mixed
 with these Fake VLM results.
+
+## Frame-metrics-only rerun
+
+After the completed E2E/fault run, `--frame-metrics-only` repeats the same ten
+target and ten non-target controlled scenarios. It does not schedule fault
+scenarios and writes only:
+
+- `frame_metrics_raw.csv`
+- `frame_metrics_summary.csv`
+- `frame_metrics_report.md`
+- `evidence/frame_metrics_environment.json`
+- `evidence/frame_metrics_run.log`
+- new per-run JSON/image evidence under `evidence/runs/`
+
+The existing E2E latency, scenario, queue/drop, fault summary, and validation
+report files are not overwritten by this mode. Detection/track/event/request
+metrics remain in the frame-metrics raw rows for traceability but are never
+used to calculate frame retention.
