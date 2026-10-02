@@ -1,0 +1,13 @@
+run,branch,vlm_triggers,vs_full_increase,vs_full_ratio,candidates_raised,duplicate_suppressed,triggers_target_actor,triggers_non_target_actor,triggers_unassociated,target_actors_with_vlm_trigger,vlm_triggers_from_disappeared_tracks,input_frames,unique_vehicles_entering_fov,target_color_vehicles_entering_fov,total_yolo_vehicle_detections
+run1,full,11,0,1.0,186,175,9,0,2,6,,6000,68,9,4365
+run1,no_hsv,19,8,1.727273,2448,2429,0,6,13,0,,6000,68,9,4365
+run1,no_temporal,11,0,1.0,357,346,10,1,0,7,,6000,68,9,4365
+run1,no_dedup,186,175,16.909091,186,0,117,5,64,9,,6000,68,9,4365
+run2,full,11,0,1.0,222,211,7,3,1,5,,6000,67,9,4305
+run2,no_hsv,19,8,1.727273,2434,2415,0,7,12,0,,6000,67,9,4305
+run2,no_temporal,11,0,1.0,400,389,8,3,0,6,,6000,67,9,4305
+run2,no_dedup,222,211,20.181818,222,0,132,17,73,9,,6000,67,9,4305
+run3,full,11,0,1.0,215,204,8,0,3,6,4,6000,67,9,4111
+run3,no_hsv,20,9,1.818182,2323,2303,1,6,13,1,14,6000,67,9,4111
+run3,no_temporal,11,0,1.0,406,395,10,1,0,7,0,6000,67,9,4111
+run3,no_dedup,215,204,19.545455,215,0,134,5,76,9,88,6000,67,9,4111

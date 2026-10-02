@@ -1,0 +1,11 @@
+minute,frames,unique_vehicles,target_vehicles,yolo_detections,frames_with_detection,mean_visible_vehicles,moving_vehicles,tracked_vehicles,vlm_triggers_full,vlm_triggers_no_hsv,vlm_triggers_no_temporal,vlm_triggers_no_dedup
+0,600,22,1,555,348,1.332,70,70,1,2,1,20
+1,600,14,4,271,177,0.773,70,70,2,2,2,32
+2,600,22,2,620,378,1.453,70,70,1,2,1,17
+3,600,17,3,511,329,1.178,70,70,1,2,1,31
+4,600,13,1,314,228,0.805,70,70,1,2,1,6
+5,600,14,0,419,268,1.002,70,70,1,2,1,18
+6,600,15,1,497,338,1.053,70,70,1,2,1,17
+7,600,17,2,468,269,1.105,70,70,1,1,1,20
+8,600,9,1,249,189,0.615,67,70,1,2,1,13
+9,600,15,1,461,298,1.018,70,70,1,2,1,12

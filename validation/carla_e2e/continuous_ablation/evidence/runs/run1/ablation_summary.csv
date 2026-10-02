@@ -1,0 +1,5 @@
+configuration,branch,hsv,temporal,dedup,vlm_triggers,vs_full_increase,vs_full_ratio,frames_with_vlm_trigger,unique_tracks_triggering,unique_actors_triggering,hsv_candidate_detections,frames_with_hsv_candidate,active_target_track_observations,frames_with_active_target_track,temporal_results,temporal_confirmations_passing_gate,frames_triggering_confirmation,candidates_raised,duplicate_suppressed,candidates_target_actor,candidates_non_target_actor,candidates_unassociated,triggers_target_actor,triggers_non_target_actor,triggers_unassociated,max_candidates_in_one_frame,dropped_frames,branch_exceptions
+Full,full,True,True,True,11,0,1.0,11,11,6,357,348,357,348,2418,186,177,186,175,117,5,64,9,0,2,2,0,0
+No HSV,no_hsv,False,True,True,19,8,1.727273,19,19,5,4365,2822,4365,2822,2448,2448,1542,2448,2429,129,1367,952,0,6,13,6,0,0
+No Temporal,no_temporal,True,False,True,11,0,1.0,11,11,8,357,348,357,348,4365,357,348,357,346,337,19,1,10,1,0,2,0,0
+No Dedup,no_dedup,True,True,False,186,175,16.909091,177,33,10,357,348,357,348,2418,186,177,186,0,117,5,64,117,5,64,2,0,0
