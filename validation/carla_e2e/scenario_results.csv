@@ -1,2 +1,3 @@
 scenario,environment,repetitions,success,avg_e2e_ms,p95_e2e_ms,max_e2e_ms,vlm_calls,max_queue,drops,status
-Smoke,CARLA 0.9.13 + Real YOLO intended,0,not_measured,not_measured,not_measured,not_measured,0,not_measured,not_measured,BLOCKED
+Camera smoke,CARLA 0.9.13 host simulation,1,1,not_measured,not_measured,not_measured,0,not_measured,not_measured,PASS
+Real YOLO smoke,CARLA 0.9.13 + Real YOLO intended,0,not_measured,not_measured,not_measured,not_measured,0,not_measured,not_measured,PENDING
