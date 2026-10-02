@@ -80,6 +80,7 @@ class Actor:
         self._transform = transform
         self.is_alive = True
         self.autopilot = []
+        self.destroy_calls = 0
 
     def set_autopilot(self, enabled, port):
         self.autopilot.append((enabled, port))
@@ -88,6 +89,9 @@ class Actor:
         return self._transform
 
     def destroy(self):
+        self.destroy_calls += 1
+        if self.destroy_calls > 1:
+            raise RuntimeError("double destroy")
         self.is_alive = False
         return True
 
@@ -262,9 +266,24 @@ def test_cleanup_destroys_only_owned_actors_and_reports_result():
 
     result = module.cleanup_owned_actors(owned)
 
-    assert result == {"attempted": 2, "destroyed": 2, "failed_actor_ids": []}
+    assert result == {
+        "attempted": 2, "destroyed": 2, "failed_actor_ids": [],
+        "skipped_duplicate_actor_ids": [],
+    }
     assert all(not actor.is_alive for actor in owned)
     assert uncontrolled.is_alive
+
+
+def test_cleanup_deduplicates_actor_handles_and_never_reads_after_destroy():
+    module = load_module()
+    actor = Actor(Transform())
+
+    result = module.cleanup_owned_actors([actor, actor])
+
+    assert actor.destroy_calls == 1
+    assert result["attempted"] == 1
+    assert result["destroyed"] == 1
+    assert result["skipped_duplicate_actor_ids"] == [actor.id]
 
 
 def test_movement_summary_requires_twelve_of_fifteen_backgrounds():

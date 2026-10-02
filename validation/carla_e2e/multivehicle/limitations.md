@@ -19,5 +19,8 @@
   associations under occlusion.
 - E2E event latency is not produced by this smoke runner. It remains a full
   benchmark metric after the smoke gate passes.
+- The camera readiness gate permits up to ten setup ticks before the fixed
+  fifty-tick pre-roll. Readiness ticks are recorded and excluded from pre-roll
+  and measurement counters.
 - Fake VLM and Fake Alert results do not measure Real VLM or real notification
   service behavior.

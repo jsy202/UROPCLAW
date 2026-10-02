@@ -13,6 +13,7 @@ import sys
 import threading
 import time
 import traceback
+from contextlib import ExitStack
 from pathlib import Path
 
 
@@ -45,6 +46,8 @@ def parse_args(argv=None):
     parser.add_argument("--port", type=int, default=2000)
     parser.add_argument("--tm-port", type=int, default=8000)
     parser.add_argument("--timeout", type=float, default=30.0)
+    parser.add_argument("--sensor-timeout", type=float, default=2.0)
+    parser.add_argument("--camera-ready-ticks", type=int, default=10)
     parser.add_argument("--drain-timeout", type=float, default=30.0)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--background-vehicles", type=int, default=15)
@@ -153,6 +156,115 @@ def _image_to_bgr(image, numpy_module):
     return numpy_module.frombuffer(image.raw_data, dtype=numpy_module.uint8).reshape(
         (image.height, image.width, 4)
     )[:, :, :3].copy()
+
+
+class SensorFrameTimeout(RuntimeError):
+    def __init__(self, expected_frame, received_frames):
+        self.expected_frame = int(expected_frame)
+        self.received_frames = list(received_frames)
+        super().__init__(
+            "sensor frame timeout: expected={0}, received={1}".format(
+                self.expected_frame, self.received_frames
+            )
+        )
+
+
+class CameraNotReadyError(RuntimeError):
+    def __init__(self, attempts, timeout_evidence):
+        self.attempts = int(attempts)
+        self.timeout_evidence = list(timeout_evidence)
+        super().__init__("CAMERA_NOT_READY after {0} synchronous ticks".format(attempts))
+
+
+class SynchronousSensorStream:
+    """Match sensor callbacks to explicit synchronous world ticks."""
+
+    def __init__(self, sensor):
+        self.sensor = sensor
+        self.queue = queue.Queue()
+        self.active = threading.Event()
+        self.received_frames = []
+        self.stale_frames = []
+        self.future_frames = {}
+        self.timeout_evidence = []
+
+    def start(self):
+        self.active.set()
+
+        def callback(image):
+            if not self.active.is_set():
+                return
+            frame_id = int(image.frame)
+            self.received_frames.append(frame_id)
+            self.queue.put_nowait(image)
+
+        self.sensor.listen(callback)
+
+    def close(self):
+        self.active.clear()
+        while True:
+            try:
+                self.queue.get_nowait()
+            except queue.Empty:
+                break
+
+    def wait_for_frame(self, expected_frame, timeout):
+        expected_frame = int(expected_frame)
+        if expected_frame in self.future_frames:
+            return self.future_frames.pop(expected_frame)
+        deadline = time.monotonic() + timeout
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                evidence = {
+                    "expected_frame": expected_frame,
+                    "received_frames": list(self.received_frames),
+                }
+                self.timeout_evidence.append(evidence)
+                raise SensorFrameTimeout(expected_frame, self.received_frames)
+            try:
+                image = self.queue.get(timeout=remaining)
+            except queue.Empty:
+                evidence = {
+                    "expected_frame": expected_frame,
+                    "received_frames": list(self.received_frames),
+                }
+                self.timeout_evidence.append(evidence)
+                raise SensorFrameTimeout(expected_frame, self.received_frames)
+            frame_id = int(image.frame)
+            if frame_id < expected_frame:
+                self.stale_frames.append(frame_id)
+                continue
+            if frame_id == expected_frame:
+                return image
+            self.future_frames[frame_id] = image
+
+    def tick_and_wait(self, world, tick_timeout, sensor_timeout):
+        expected_frame = int(world.tick(tick_timeout))
+        return expected_frame, self.wait_for_frame(expected_frame, sensor_timeout)
+
+    def wait_until_ready(self, world, tick_timeout, sensor_timeout, max_ticks):
+        for _ in range(max_ticks):
+            try:
+                return self.tick_and_wait(world, tick_timeout, sensor_timeout)
+            except SensorFrameTimeout:
+                continue
+        raise CameraNotReadyError(max_ticks, self.timeout_evidence)
+
+
+def stop_camera_stream(stream, camera):
+    if stream is not None:
+        stream.close()
+    if camera is not None:
+        try:
+            camera.stop()
+        except Exception:
+            pass
+
+
+def shutdown_scene_resources(stream, camera, owned_actors):
+    stop_camera_stream(stream, camera)
+    return cleanup_owned_actors(owned_actors)
 
 
 class RealYoloDetector:
@@ -300,14 +412,35 @@ def run_smoke(args):
     owned_actors = []
     pipeline = None
     camera = None
-    camera_started = False
+    camera_stream = None
     monitor_stop = threading.Event()
     monitor_thread = None
     monitor_samples = []
     originals = None
     manifest = None
     caught_error = None
-    cleanup = {"attempted": 0, "destroyed": 0, "failed_actor_ids": []}
+    cleanup = {
+        "attempted": 0, "destroyed": 0, "failed_actor_ids": [],
+        "skipped_duplicate_actor_ids": [],
+    }
+    cleanup_complete = False
+
+    def cleanup_scene():
+        nonlocal cleanup, cleanup_complete, pipeline
+        if cleanup_complete:
+            return
+        monitor_stop.set()
+        if monitor_thread is not None:
+            monitor_thread.join(timeout=1.0)
+        if pipeline is not None:
+            try:
+                pipeline.stop()
+            except Exception:
+                pass
+            pipeline = None
+        cleanup = shutdown_scene_resources(camera_stream, camera, owned_actors)
+        cleanup_complete = True
+
     try:
         validate_args(args)
         if not args.weight.is_file():
@@ -367,7 +500,9 @@ def run_smoke(args):
         vlm = FakeVLM(observation)
         alert = FakeAlert()
 
-        with synchronous_mode(world, tm, args.seed, 0.1):
+        with ExitStack() as scene_stack:
+            scene_stack.enter_context(synchronous_mode(world, tm, args.seed, 0.1))
+            scene_stack.callback(cleanup_scene)
             planned = plan_scene(carla, world, args.seed, args.background_vehicles)
             planned["traffic_manager"]["port"] = args.tm_port
             target_manifest, non_target_manifest = make_manifest_pair(planned)
@@ -397,28 +532,26 @@ def run_smoke(args):
             actual["actor_counts_after_spawn"] = _vehicle_counts(world)
             write_manifest(evidence_dir / "scene_manifest.json", manifest)
 
-            image_queue = queue.Queue(maxsize=4)
-
-            def camera_callback(image):
-                try:
-                    image_queue.put_nowait(image)
-                except queue.Full:
-                    try:
-                        image_queue.get_nowait()
-                    except queue.Empty:
-                        pass
-                    try:
-                        image_queue.put_nowait(image)
-                    except queue.Full:
-                        pass
-
-            camera.listen(camera_callback)
-            camera_started = True
+            camera_stream = SynchronousSensorStream(camera)
+            camera_stream.start()
+            partial["phase"] = "camera_readiness"
+            ready_expected, ready_image = camera_stream.wait_until_ready(
+                world, args.timeout, args.sensor_timeout, args.camera_ready_ticks
+            )
+            partial["camera_readiness"] = {
+                "status": "PASS",
+                "tick_frame": ready_expected,
+                "sensor_frame": int(ready_image.frame),
+                "ticks_attempted": len(camera_stream.timeout_evidence) + 1,
+            }
             background_before = actor_locations(controlled[:-1])
             pre_roll_ticks = int(round(args.pre_roll_seconds / 0.1))
+            partial["phase"] = "pre_roll"
             for tick_index in range(pre_roll_ticks):
-                world.tick(args.timeout)
-                image = image_queue.get(timeout=args.timeout)
+                partial["pre_roll_tick_index"] = tick_index
+                expected_frame, image = camera_stream.tick_and_wait(
+                    world, args.timeout, args.sensor_timeout
+                )
                 frame = _image_to_bgr(image, np)
                 if tick_index < args.model_warmup:
                     base_detector(frame)
@@ -470,12 +603,15 @@ def run_smoke(args):
             accepted = 0
             callback_drops = 0
             measurement_ticks = 0
+            partial["phase"] = "measurement"
             while accepted < args.frames:
                 measurement_ticks += 1
+                partial["measurement_tick_index"] = measurement_ticks
                 if measurement_ticks > args.frames * 3:
                     raise RuntimeError("could not accept 100 frames within 300 synchronous ticks")
-                world.tick(args.timeout)
-                image = image_queue.get(timeout=args.timeout)
+                expected_frame, image = camera_stream.tick_and_wait(
+                    world, args.timeout, args.sensor_timeout
+                )
                 frame = _image_to_bgr(image, np)
                 ground_truth = _ground_truth(controlled, probe_actor, camera_transform, args, np)
                 wall_timestamp = time.time()
@@ -528,6 +664,14 @@ def run_smoke(args):
                 "fake_alert_events": len(alert.events),
                 "pipeline_alive": pipeline_alive,
                 "callback_dropped_frames": callback_drops,
+                "camera_sync": {
+                    "readiness": partial["camera_readiness"],
+                    "received_frame_count": len(camera_stream.received_frames),
+                    "first_received_frame": min(camera_stream.received_frames),
+                    "last_received_frame": max(camera_stream.received_frames),
+                    "stale_frames": list(camera_stream.stale_frames),
+                    "timeout_evidence": list(camera_stream.timeout_evidence),
+                },
                 "production_metrics": production_metrics,
                 "frame_retention": frame_retention(metrics),
                 "tracking": observation.tracking_diagnostics(),
@@ -545,23 +689,22 @@ def run_smoke(args):
             partial = result
     except Exception as error:
         caught_error = error
+        if isinstance(error, CameraNotReadyError):
+            partial["phase"] = "CAMERA_NOT_READY"
+            partial["camera_sync_error"] = {
+                "attempts": error.attempts,
+                "timeout_evidence": error.timeout_evidence,
+            }
+        elif isinstance(error, SensorFrameTimeout):
+            partial["phase"] = "SENSOR_FRAME_TIMEOUT"
+            partial["camera_sync_error"] = {
+                "expected_frame": error.expected_frame,
+                "received_frames": error.received_frames,
+            }
         partial["traceback"] = traceback.format_exc()
         logger.exception("Multi-vehicle smoke failed")
     finally:
-        monitor_stop.set()
-        if monitor_thread is not None:
-            monitor_thread.join(timeout=1.0)
-        if pipeline is not None:
-            try:
-                pipeline.stop()
-            except Exception:
-                pass
-        if camera_started and camera is not None:
-            try:
-                camera.stop()
-            except Exception:
-                pass
-        cleanup = cleanup_owned_actors(owned_actors)
+        cleanup_scene()
         if originals is not None:
             (
                 pipeline_mod.IoUTracker, pipeline_mod.TemporalConfirm,

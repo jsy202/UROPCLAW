@@ -1,0 +1,7 @@
+2026-10-03 04:43:22,054 [ERROR] Multi-vehicle smoke failed
+Traceback (most recent call last):
+  File "validation/carla_e2e/multivehicle/run_host_smoke.py", line 421, in run_smoke
+    image = image_queue.get(timeout=args.timeout)
+  File "/usr/lib/python3.7/queue.py", line 178, in get
+    raise Empty
+_queue.Empty

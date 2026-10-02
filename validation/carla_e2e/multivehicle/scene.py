@@ -318,16 +318,29 @@ def movement_summary(before, after, minimum_distance=1.0):
 
 def cleanup_owned_actors(actors):
     failed = []
+    skipped = []
     destroyed = 0
+    attempted = 0
+    seen = set()
     for actor in reversed(list(actors)):
         actor_id = int(getattr(actor, "id", -1))
+        identity = id(actor)
+        if identity in seen:
+            skipped.append(actor_id)
+            continue
+        seen.add(identity)
+        attempted += 1
         try:
             result = actor.destroy()
-            alive = bool(getattr(actor, "is_alive", False))
-            if result is False or alive:
+            if result is False:
                 failed.append(actor_id)
             else:
                 destroyed += 1
         except Exception:
             failed.append(actor_id)
-    return {"attempted": len(actors), "destroyed": destroyed, "failed_actor_ids": failed}
+    return {
+        "attempted": attempted,
+        "destroyed": destroyed,
+        "failed_actor_ids": failed,
+        "skipped_duplicate_actor_ids": skipped,
+    }

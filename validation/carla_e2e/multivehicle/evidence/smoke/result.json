@@ -1,0 +1,34 @@
+{
+  "actor_counts_before": {
+    "preexisting_validation_actor_count": 0,
+    "uncontrolled_world_vehicle_count": 0,
+    "world_vehicle_count": 0
+  },
+  "cleanup": {
+    "attempted": 0,
+    "destroyed": 0,
+    "failed_actor_ids": []
+  },
+  "client_version": "0.9.13",
+  "environment": {
+    "carla_client_version": "0.9.13",
+    "carla_server_version": "0.9.13",
+    "cuda_available": true,
+    "gpu": "NVIDIA GeForce RTX 3060",
+    "map": "Carla/Maps/Town10HD_Opt",
+    "opencv": "4.8.1",
+    "python": "3.7.17",
+    "torch": "1.13.1+cu117",
+    "torch_cuda": "11.7",
+    "ultralytics": "8.0.145",
+    "yolo_weight": "yolov8s.pt",
+    "yolo_weight_sha256": "268e5bb54c640c96c3510224833bc2eeacab4135c6deb41502156e39986b562d",
+    "yolo_weight_source": "post-project pretrained YOLOv8s weight"
+  },
+  "error": "RuntimeError: Pickling of \"carla.libcarla.WorldSettings\" instances is not enabled (http://www.boost.org/libs/python/doc/v2/pickle.html)",
+  "map": "Carla/Maps/Town10HD_Opt",
+  "phase": "connected",
+  "server_version": "0.9.13",
+  "status": "FAIL",
+  "traceback": "Traceback (most recent call last):\n  File \"validation/carla_e2e/multivehicle/run_host_smoke.py\", line 370, in run_smoke\n    with synchronous_mode(world, tm, args.seed, 0.1):\n  File \"/usr/lib/python3.7/contextlib.py\", line 112, in __enter__\n    return next(self.gen)\n  File \"/home/jsy202/validation-work/UROPCLAW-carla-e2e/validation/carla_e2e/multivehicle/scene.py\", line 268, in synchronous_mode\n    original = copy.copy(world.get_settings())\n  File \"/usr/lib/python3.7/copy.py\", line 96, in copy\n    rv = reductor(4)\nRuntimeError: Pickling of \"carla.libcarla.WorldSettings\" instances is not enabled (http://www.boost.org/libs/python/doc/v2/pickle.html)\n"
+}
