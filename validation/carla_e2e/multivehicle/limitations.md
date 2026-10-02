@@ -6,6 +6,12 @@
 - Traffic Manager determinism can still be affected by uncontrolled actors
   already present in the host world. Their count is recorded and they are not
   deleted.
+- CARLA 0.9.13 does not expose a Traffic Manager synchronous-mode getter used by
+  this runner. The original TM mode therefore cannot be observed; cleanup sets
+  TM synchronous mode to `False`, the standard CARLA validation shutdown
+  pattern. World `synchronous_mode`, `fixed_delta_seconds`, and
+  `no_rendering_mode` are independently restored to their captured primitive
+  values even when the validation body raises.
 - Probe FOV visibility and actor/track association use geometric projection and
   IoU for evaluation only; they are not a replacement for perception ground
   truth and never affect production decisions.

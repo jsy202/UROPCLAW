@@ -265,18 +265,28 @@ def start_probe(carla_module, probe_actor, probe_plan, tm, tm_port):
 
 @contextmanager
 def synchronous_mode(world, tm, seed=42, fixed_delta_seconds=0.1):
-    original = copy.copy(world.get_settings())
-    updated = copy.copy(original)
-    updated.synchronous_mode = True
-    updated.fixed_delta_seconds = fixed_delta_seconds
-    world.apply_settings(updated)
-    tm.set_synchronous_mode(True)
-    tm.set_random_device_seed(seed)
+    settings = world.get_settings()
+    original = {
+        "synchronous_mode": bool(settings.synchronous_mode),
+        "fixed_delta_seconds": settings.fixed_delta_seconds,
+        "no_rendering_mode": bool(settings.no_rendering_mode),
+    }
     try:
+        settings.synchronous_mode = True
+        settings.fixed_delta_seconds = fixed_delta_seconds
+        world.apply_settings(settings)
+        tm.set_synchronous_mode(True)
+        tm.set_random_device_seed(seed)
         yield
     finally:
-        tm.set_synchronous_mode(False)
-        world.apply_settings(original)
+        try:
+            tm.set_synchronous_mode(False)
+        finally:
+            restore = world.get_settings()
+            restore.synchronous_mode = original["synchronous_mode"]
+            restore.fixed_delta_seconds = original["fixed_delta_seconds"]
+            restore.no_rendering_mode = original["no_rendering_mode"]
+            world.apply_settings(restore)
 
 
 def actor_locations(actors):
