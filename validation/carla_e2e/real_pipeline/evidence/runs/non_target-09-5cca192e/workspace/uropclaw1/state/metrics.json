@@ -1,0 +1,33 @@
+{
+  "baseline_mode": "proposed",
+  "frames_received": 10,
+  "frames_dropped": 0,
+  "candidates_dropped": 0,
+  "frames_processed": 10,
+  "detections_total": 10,
+  "color_filter_passed": 10,
+  "candidates_raised": 0,
+  "alerts_sent": 0,
+  "alerts_delivered": 0,
+  "alerts_failed": 0,
+  "duplicate_suppressed": 0,
+  "openclaw_calls": 0,
+  "openclaw_confirmed": 0,
+  "openclaw_timeouts": 0,
+  "openclaw_errors": 0,
+  "openclaw_parse_failures": 0,
+  "pipeline_start_time": 1790966947.779461,
+  "yolo_latency_ms_list": [
+    20.99,
+    23.53,
+    23.3,
+    23.25,
+    25.49,
+    18.66,
+    24.64,
+    23.25,
+    24.61,
+    24.95
+  ],
+  "uptime_seconds": 1.3
+}

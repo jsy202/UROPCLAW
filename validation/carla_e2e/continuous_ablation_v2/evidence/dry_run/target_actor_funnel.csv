@@ -1,0 +1,10 @@
+actor_id,slot,blueprint,entered_fov,yolo_detected,hsv_passed,tracked,confirmed,vlm_reached,entered_fov_first_s,yolo_detected_first_s,hsv_passed_first_s,tracked_first_s,confirmed_first_s,vlm_reached_first_s,full_candidates,full_vlm_triggers,suppressed_same_target,suppressed_fragment,blocked_by_other_actor,failure_reason
+1115,5,vehicle.chevrolet.impala,False,False,False,False,False,False,,,,,,,0,0,0,0,,never entered FOV
+1123,13,vehicle.mini.cooper_s_2021,True,True,True,True,True,True,28.8,28.9,29.1,29.1,29.1,29.1,14,2,11,1,,
+1131,21,vehicle.mini.cooper_s,False,False,False,False,False,False,,,,,,,0,0,0,0,,never entered FOV
+1139,29,vehicle.bmw.grandtourer,False,False,False,False,False,False,,,,,,,0,0,0,0,,never entered FOV
+1147,37,vehicle.carlamotors.firetruck,False,False,False,False,False,False,,,,,,,0,0,0,0,,never entered FOV
+1155,45,vehicle.lincoln.mkz_2020,False,False,False,False,False,False,,,,,,,0,0,0,0,,never entered FOV
+1163,53,vehicle.volkswagen.t2,False,False,False,False,False,False,,,,,,,0,0,0,0,,never entered FOV
+1171,61,vehicle.micro.microlino,False,False,False,False,False,False,,,,,,,0,0,0,0,,never entered FOV
+1179,69,vehicle.ford.crown,False,False,False,False,False,False,,,,,,,0,0,0,0,,never entered FOV

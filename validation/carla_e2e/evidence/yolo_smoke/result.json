@@ -1,0 +1,32 @@
+{
+  "actual_carla_frame": true,
+  "annotated_frame_saved": true,
+  "detection_output_type": "list[perception.yolo_detector.Detection]",
+  "detections": [],
+  "error": null,
+  "finished_at_utc": "2026-10-02T17:55:30.297720+00:00",
+  "frame": {
+    "frame_id": 335837,
+    "height": 600,
+    "shape_bgr": [
+      600,
+      800,
+      3
+    ],
+    "timestamp": 2151.4651350773784,
+    "width": 800
+  },
+  "inference_device": "cuda:0",
+  "inference_latency_ms": 3806.716,
+  "inference_succeeded": true,
+  "input_frame_saved": true,
+  "model_load_ms": 39.205,
+  "model_loaded": true,
+  "pipeline_detection_contract_compatible": true,
+  "raw_model_boxes": 0,
+  "sensor_destroyed": true,
+  "sensor_stopped": true,
+  "started_at_utc": "2026-10-02T17:55:26.029436+00:00",
+  "status": "PASS",
+  "vehicle_detections": 0
+}

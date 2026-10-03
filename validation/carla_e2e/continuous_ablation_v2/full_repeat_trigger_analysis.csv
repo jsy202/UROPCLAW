@@ -1,0 +1,36 @@
+run,actor_id,time_s,gap_s,previous_track,track,kind,dedup_reason
+run1,1194,30.6,1.5,33,38,fragment_leak_within_30s,new_target
+run1,1186,125.2,56.8,50,77,new_track_after_30s (revisit or re-track),new_target
+run1,1186,190.8,65.6,77,135,new_track_after_30s (revisit or re-track),new_target
+run1,1250,249.5,156.3,56,163,new_track_after_30s (revisit or re-track),new_target
+run1,1242,502.6,301.4,136,311,new_track_after_30s (revisit or re-track),new_target
+run1,1242,503.9,1.3,311,312,fragment_leak_within_30s,new_target
+run1,1242,505.0,1.1,312,316,fragment_leak_within_30s,new_target
+run1,1211,338.1,0.9,216,217,fragment_leak_within_30s,new_target
+run1,1211,338.6,0.5,217,218,fragment_leak_within_30s,new_target
+run2,1265,30.6,1.5,33,38,fragment_leak_within_30s,new_target
+run2,1265,410.0,379.4,38,256,new_track_after_30s (revisit or re-track),new_target
+run2,1257,125.2,56.8,50,77,new_track_after_30s (revisit or re-track),new_target
+run2,1257,190.8,65.6,77,137,new_track_after_30s (revisit or re-track),new_target
+run2,1257,458.7,267.9,137,291,new_track_after_30s (revisit or re-track),new_target
+run2,1321,249.5,156.3,56,165,new_track_after_30s (revisit or re-track),new_target
+run2,1321,504.4,254.9,165,318,new_track_after_30s (revisit or re-track),new_target
+run2,1281,386.7,283.2,65,242,new_track_after_30s (revisit or re-track),new_target
+run2,1297,398.4,243.2,105,249,new_track_after_30s (revisit or re-track),new_target
+run2,1313,456.0,254.8,139,286,new_track_after_30s (revisit or re-track),new_target
+run2,1282,338.1,0.9,205,206,fragment_leak_within_30s,new_target
+run2,1282,338.6,0.5,206,207,fragment_leak_within_30s,new_target
+run2,1273,369.8,1.3,235,236,fragment_leak_within_30s,new_target
+run3,1336,30.6,1.5,33,38,fragment_leak_within_30s,new_target
+run3,1336,410.0,379.4,38,256,new_track_after_30s (revisit or re-track),new_target
+run3,1328,125.2,56.8,50,77,new_track_after_30s (revisit or re-track),new_target
+run3,1328,190.8,65.6,77,137,new_track_after_30s (revisit or re-track),new_target
+run3,1328,458.7,267.9,137,291,new_track_after_30s (revisit or re-track),new_target
+run3,1392,249.5,156.3,56,165,new_track_after_30s (revisit or re-track),new_target
+run3,1392,504.4,254.9,165,317,new_track_after_30s (revisit or re-track),new_target
+run3,1352,386.7,283.2,65,242,new_track_after_30s (revisit or re-track),new_target
+run3,1368,398.4,243.2,105,249,new_track_after_30s (revisit or re-track),new_target
+run3,1384,456.0,254.8,139,286,new_track_after_30s (revisit or re-track),new_target
+run3,1353,338.1,0.9,205,206,fragment_leak_within_30s,new_target
+run3,1353,338.6,0.5,206,207,fragment_leak_within_30s,new_target
+run3,1344,369.8,1.3,235,236,fragment_leak_within_30s,new_target

@@ -12,6 +12,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+.venv-carla-e2e/
 venv/
 dist/
 build/
@@ -19,10 +20,13 @@ build/
 # YOLO 모델 가중치
 *.pt
 *.onnx
+validation/carla_e2e/weights/
+validation/carla_e2e/runtime/
 
 # 로그
 *.log
 logs/
+!validation/carla_e2e/evidence/**/*.log
 
 # 백업
 session-backups/
@@ -36,3 +40,7 @@ workspace-unify-backup/
 # 테스트
 .pytest_cache/
 benchmark_results/*.tmp
+
+# CARLA validation host run artifacts
+validation/carla_e2e/real_pipeline/evidence/runs/**/first_frame.png
+validation/carla_e2e/real_pipeline/evidence/runs/**/crops/

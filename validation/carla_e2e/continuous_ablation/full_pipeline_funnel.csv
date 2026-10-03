@@ -1,0 +1,7 @@
+stage,count,previous_stage_retention,input_ratio
+input_frames,6000,,1.0
+frames_with_yolo_vehicle_detection,2740,0.456667,0.456667
+frames_with_target_hsv_candidate,397,0.144891,0.066167
+frames_with_active_target_track,397,1.0,0.066167
+frames_triggering_temporal_confirmation,196,0.493703,0.032667
+frames_triggering_vlm,11,0.056122,0.001833

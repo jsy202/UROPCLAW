@@ -1,0 +1,4 @@
+scenario,environment,repetitions,success,avg_e2e_ms,p95_e2e_ms,max_e2e_ms,vlm_calls,max_queue,drops,status
+Camera smoke,CARLA 0.9.13 host simulation,1,1,not_measured,not_measured,not_measured,0,not_measured,not_measured,PASS
+Real YOLO one-frame smoke,CARLA 0.9.13 + CUDA YOLOv8s,1,1,not_representative,not_measured,not_representative,0,not_measured,not_measured,PASS_ZERO_BOXES
+YOLO positive + steady-state gate,CARLA 0.9.13 + CUDA YOLOv8s,0,not_measured,not_measured,not_measured,not_measured,0,not_measured,not_measured,PENDING

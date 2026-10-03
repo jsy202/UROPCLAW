@@ -1,0 +1,32 @@
+{
+  "event_id": "0031b42b-1276-4c2a-a2dc-8d1f25070e56",
+  "camera_id": "multivehicle_fixed_cctv",
+  "agent_id": "uropclaw1",
+  "track_id": 9,
+  "timestamp": 1790972659.067655,
+  "color": "blue",
+  "color_score": 1.0,
+  "yolo_class": "car",
+  "yolo_confidence": 0.7306,
+  "bbox": [
+    731,
+    269,
+    799,
+    307
+  ],
+  "location": {
+    "x": 12.0,
+    "y": 130.4
+  },
+  "mission_id": "multivehicle-smoke",
+  "crop_path": "/home/jsy202/validation-work/UROPCLAW-carla-e2e/validation/carla_e2e/multivehicle/evidence/benchmark/runs/target-04/workspace/uropclaw1/state/crops/evt_0031b42b.jpg",
+  "openclaw_result": {
+    "confirmed": true,
+    "confidence": "high",
+    "vehicle_body_type": "car",
+    "target_body_type_match": true,
+    "color_match": true,
+    "color_observed": "blue",
+    "reason": "deterministic multi-vehicle smoke response"
+  }
+}

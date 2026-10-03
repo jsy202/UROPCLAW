@@ -1,0 +1,3 @@
+scenario,repetitions,successes,success_rate,input_frames,yolo_detections,unique_tracks,confirmed_tracks,vlm_requests,target_events,false_target_events,max_input_queue,max_candidate_queue,ending_queue_depth,dropped_frames,dropped_events,backlog_accumulation,pipeline_crashes
+target,10,10,1.0,1000,1550,150,150,10,10,0,2,1,0,0,0,0,0
+non_target,10,10,1.0,1000,1660,150,150,0,0,0,2,0,0,0,0,0,0

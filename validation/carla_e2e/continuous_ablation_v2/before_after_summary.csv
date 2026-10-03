@@ -1,0 +1,10 @@
+metric,before,after
+stale (disappeared-track) Full candidates,88 / 215 (run3; runs 1-2 not recorded),run1: 0 / 89 ; run2: 0 / 126 ; run3: 0 / 126
+stale (disappeared-track) Full VLM triggers,4 / 11 (run3),run1: 0 / 19 ; run2: 0 / 23 ; run3: 0 / 23
+target vehicles entering FOV,9/9/9,9/9/9
+target vehicles reaching VLM (Full),"6/9, 5/9, 6/9","9/9, 9/9, 9/9"
+Full VLM triggers,11/11/11,19/23/23
+No HSV VLM triggers,19/19/20,142/156/155
+No Temporal VLM triggers,11/11/11,22/29/29
+No Dedup VLM triggers,186/222/215,89/126/126
+Full candidates before dedup,186/222/215,89/126/126

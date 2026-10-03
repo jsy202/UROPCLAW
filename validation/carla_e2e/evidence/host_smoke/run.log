@@ -1,0 +1,19 @@
+2026-10-03 02:32:06,666 INFO Connecting CARLA client to 127.0.0.1:2000
+2026-10-03 02:32:06,668 INFO CARLA versions: client=0.9.13 server=0.9.13
+2026-10-03 02:32:06,747 INFO World query succeeded: map=Carla/Maps/Town10HD_Opt synchronous_mode=False
+2026-10-03 02:32:06,770 INFO Spawned RGB camera at the current spectator transform
+2026-10-03 02:32:07,493 INFO Saved first RGB frame to /home/jsy202/validation-work/UROPCLAW-carla-e2e/validation/carla_e2e/evidence/host_smoke/frame.png
+2026-10-03 02:32:07,493 INFO RGB frame received: id=119309 timestamp=752.004289 size=800x600
+2026-10-03 02:32:07,494 INFO RGB frame received: id=119311 timestamp=752.570462 size=800x600
+2026-10-03 02:32:07,495 INFO RGB frame received: id=119312 timestamp=752.578068 size=800x600
+2026-10-03 02:32:07,495 INFO RGB frame received: id=119313 timestamp=752.599605 size=800x600
+2026-10-03 02:32:07,495 INFO RGB frame received: id=119314 timestamp=752.621079 size=800x600
+2026-10-03 02:32:07,558 INFO RGB frame received: id=119328 timestamp=752.766725 size=800x600
+2026-10-03 02:32:07,654 INFO RGB frame received: id=119341 timestamp=752.865839 size=800x600
+2026-10-03 02:32:07,756 INFO RGB frame received: id=119355 timestamp=752.966711 size=800x600
+2026-10-03 02:32:07,857 INFO RGB frame received: id=119369 timestamp=753.067692 size=800x600
+2026-10-03 02:32:07,955 INFO RGB frame received: id=119382 timestamp=753.165125 size=800x600
+2026-10-03 02:32:07,956 INFO Smoke result=PASS frames_received=10 frame_saved=True
+2026-10-03 02:32:07,956 INFO Stopped RGB camera sensor
+2026-10-03 02:32:07,958 INFO Destroyed RGB camera sensor
+2026-10-03 02:32:07,959 INFO Wrote result evidence to /home/jsy202/validation-work/UROPCLAW-carla-e2e/validation/carla_e2e/evidence/host_smoke/result.json
