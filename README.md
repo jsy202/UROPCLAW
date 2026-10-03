@@ -5,7 +5,7 @@ YOLO → HSV → Tracking → Temporal Confirmation → Deduplication → VLM �
 
 ## 1. Project Overview
 
-**문제:** 감시 카메라의 모든 frame을 VLM(vision-language model)에 보내 "목표 차량인가"를 묻는 방식은 정확하지만, frame 수만큼 VLM 요청이 발생해 처리 부하와 비용이 커집니다.
+**문제:** 감시 카메라의 모든 frame을 VLM(vision-language model)에 보내 "목표 차량인가"를 묻는 방식은 구현은 단순하지만, frame 수만큼 VLM 요청이 발생해 처리 부하와 비용이 커집니다.
 
 **접근:** 빠르고 저렴한 단계(차량 검출, 색상 필터, 추적, 시간적 확인, 중복 억제)가 먼저 후보를 선별하고, 남은 후보만 VLM이 검증하도록 단계별 후보 선별 구조를 설계했습니다. 각 단계는 서로 다른 종류의 불필요한 요청을 걸러냅니다.
 
