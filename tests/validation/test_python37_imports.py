@@ -2,6 +2,8 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[2]
 PYTHON37 = ROOT / ".venv-carla-e2e" / "bin" / "python"
@@ -18,6 +20,10 @@ MODULES = [
 ]
 
 
+@pytest.mark.skipif(
+    not PYTHON37.exists(),
+    reason="Host .venv-carla-e2e environment is not present",
+)
 def test_production_modules_import_under_isolated_python37():
     env = dict(os.environ)
     env["PYTHONPATH"] = str(ROOT / "harness")
