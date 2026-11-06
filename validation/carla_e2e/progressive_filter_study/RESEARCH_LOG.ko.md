@@ -62,8 +62,12 @@ N3를 추가하면 요청은 294회로 줄었지만 목표 출현은 232/309, �
 
 ## GitHub Actions 자동 검사에서 발견한 의존성 문제
 
+**사용 목적:** 로컬 실험 호스트에는 CARLA·GPU·분석 라이브러리가 이미 설치돼 있어 숨은 의존성이 가려질 수 있다. GitHub Actions의 깨끗한 Python 3.10 환경에서 최소 테스트 의존성만 설치해 코드의 재현성을 확인하고, push·PR마다 문법·회귀 테스트·가짜 구성 요소의 데이터 전달 검사를 자동으로 반복하기 위해 사용했다. 실제 VLM이나 CARLA를 실행하지 않아도 되는 코드 검증을 자동화하는 목적이다. 이번 matplotlib 누락은 이 검사가 호스트 환경에 가려진 의존성을 찾아낸 실제 사례다.
+
 GitHub에 브랜치를 푸시하고 PR을 만든 뒤 `.github/workflows/test.yml`의 GitHub Actions 자동 검사를 실행했다. 이 workflow는 CARLA·GPU·실제 VLM·Discord 없이 Python 3.10에서 문법 검사, 전체 테스트, 가짜 구성 요소를 사용한 replay benchmark smoke를 수행한다. CARLA 영상 실험의 실행·채점은 로컬 검증 호스트에서 완료했고, Actions는 코드 검증에 사용했다.
 
 첫 [push 검사](https://github.com/jsy202/UROPCLAW/actions/runs/42264086244)는 `ModuleNotFoundError: No module named matplotlib`으로 테스트 2개가 실패했다. 필터 설정을 import하는 `compare_no_temporal.py`가 최상위에서 집계 모듈을 불러오고, 집계 모듈이 그래프 라이브러리를 import하는 연결이 원인이었다. 로컬 호스트에는 matplotlib이 있어 전체 테스트가 통과했지만, 최소 테스트 의존성만 설치한 Actions에서 문제가 드러났다.
 
 matplotlib import를 차단한 회귀 입력으로 수정 전 실패를 재현했다. 필터 구성 조회와 단일 관측 재생에 그래프 모듈이 필요하지 않으므로, 집계 모듈 import를 실제 분석을 시작하는 main으로 이동했다. 실제 분석·그래프 생성에는 기존 의존성을 그대로 사용한다. 측정 수치나 필터의 판정 규칙은 바꾸지 않았다. 수정 후 로컬·최소 의존성 환경·Actions의 검증 결과는 [검증 기록](VERIFICATION.md)에 남긴다.
+
+**수정 후 검증:** 로컬 호스트는 153개 통과·역사적 skip 1개, matplotlib/CARLA/torch가 없는 별도 Python 3.10 환경도 153개 통과·skip 1개와 문법·가짜 replay smoke를 통과했다. GitHub Actions의 [push 재검증](https://github.com/jsy202/UROPCLAW/actions/runs/42264974586)과 [PR 재검증](https://github.com/jsy202/UROPCLAW/actions/runs/42264982739)도 모두 성공했다. Actions에서는 호스트 전용 호환성 검사도 건너뛰므로 152개 통과·skip 2개다. 검사 실패 메일을 받은 원인과 해결·재검증까지 보존했다.
