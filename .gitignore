@@ -44,3 +44,18 @@ benchmark_results/*.tmp
 # CARLA validation host run artifacts
 validation/carla_e2e/real_pipeline/evidence/runs/**/first_frame.png
 validation/carla_e2e/real_pipeline/evidence/runs/**/crops/
+
+# Full-resolution temporal study data stay on the experiment host.
+validation/carla_e2e/temporal_filter_study/runs/
+validation/carla_e2e/temporal_filter_study/pilot/
+validation/carla_e2e/temporal_filter_study/*.log
+validation/carla_e2e/temporal_filter_study/*.pid
+.planning/
+validation/carla_e2e/temporal_filter_study/interrupted/
+validation/carla_e2e/temporal_filter_study/vlm_auth_status.json
+validation/carla_e2e/temporal_filter_study/no_temporal_structure/replays/
+
+# Fresh ten-minute progressive study archives stay on the host.
+validation/carla_e2e/progressive_filter_study/runs/
+validation/carla_e2e/progressive_filter_study/*.log
+validation/carla_e2e/progressive_filter_study/interrupted/

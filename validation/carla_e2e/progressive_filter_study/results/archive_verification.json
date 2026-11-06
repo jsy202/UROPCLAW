@@ -1,0 +1,8 @@
+{
+  "recordings": 30,
+  "frames": 180000,
+  "images": 180000,
+  "image_bytes": 24739912274,
+  "actual_vlm_execution_allowed": false,
+  "earlier_connectivity_probe_excluded": 1
+}

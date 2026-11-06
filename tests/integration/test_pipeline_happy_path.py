@@ -1,7 +1,7 @@
 """End-to-end replay through the real pipeline stages:
 
 SyntheticSceneSource -> push_frame -> FakeDetector -> HSV color_filter (real) -> IoUTracker (real)
--> TemporalConfirm (real) -> Deduplicator (real) -> VLM prompt/parse (real) with SuccessVLM
+-> current-colour gate -> Deduplicator (real) -> VLM prompt/parse (real) with SuccessVLM
 -> AlertPolicy (real) -> detection_event.json + crop (real) -> FakeAlert
 """
 
@@ -28,7 +28,7 @@ def test_blue_vehicle_replay_produces_one_verified_alert(make_pipeline, workspac
     m = p.metrics_summary()
     assert pushed == 6 and m["frames_received"] == 6 and m["frames_processed"] == 6
     assert det.calls == 6
-    assert vlm.calls == 1 and m["openclaw_calls"] == 1     # temporal confirm + 30 s dedup -> one VLM call
+    assert vlm.calls == 1 and m["openclaw_calls"] == 1     # 30 s target dedup -> one VLM call
     assert m["alerts_sent"] == 1
 
 
@@ -39,3 +39,12 @@ def test_non_target_colour_produces_no_vlm_call_and_no_alert(make_pipeline):
     assert not wait_until(lambda: alert.attempts, timeout=1.0)
     assert vlm.calls == 0
     assert p.metrics_summary()["frames_processed"] == 6
+
+
+def test_single_target_observation_immediately_creates_candidate(make_pipeline):
+    vlm, alert = SuccessVLM(), FakeAlert()
+    p = make_pipeline(vlm=vlm, alert=alert)
+    replay(p, SyntheticSceneSource(1, colour="blue"), interval_s=0)
+    assert wait_until(lambda: len(alert.attempts) == 1, timeout=2)
+    assert p.metrics_summary()['candidates_raised'] == 1
+    assert vlm.calls == 1

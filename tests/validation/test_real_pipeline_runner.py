@@ -255,3 +255,10 @@ def test_fault_vlm_injects_once_then_recovers_with_normal_response(fault):
     assert vlm.calls == 2
     assert vlm.injected == 1
     assert vlm.normal_successes == 1
+
+
+def test_historical_main_rejects_removed_stage_before_resources(monkeypatch):
+    runner=load_runner()
+    monkeypatch.setattr(runner,'parse_args',lambda argv:None)
+    with pytest.raises(RuntimeError,match='e8372ce'):
+        runner.main([])

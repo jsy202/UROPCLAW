@@ -1,0 +1,5 @@
+probe,distance_px,active_guard,candidates,requests,requesting_tracks,reasons
+two_distinct_simultaneous_targets,65,False,6,1,[0],"[""fragment_continuity"", ""same_target_cooldown"", ""same_target_cooldown"", ""same_target_cooldown"", ""same_target_cooldown""]"
+two_distinct_simultaneous_targets,150,False,6,2,"[0, 1]","[""same_target_cooldown"", ""same_target_cooldown"", ""same_target_cooldown"", ""same_target_cooldown""]"
+two_distinct_simultaneous_targets,65,True,6,2,"[0, 1]","[""same_target_cooldown"", ""same_target_cooldown"", ""same_target_cooldown"", ""same_target_cooldown""]"
+two_distinct_simultaneous_targets,150,True,6,2,"[0, 1]","[""same_target_cooldown"", ""same_target_cooldown"", ""same_target_cooldown"", ""same_target_cooldown""]"

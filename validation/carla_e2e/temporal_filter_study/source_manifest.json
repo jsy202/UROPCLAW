@@ -1,0 +1,30 @@
+{
+  "commit": "7764852e1445f16f3e9ddd0a809d8657b6747613",
+  "remote_main": "e8372ce0f58528b585a5785a8fbb0bc2250165a3",
+  "source_sha256": {
+    "validation/carla_e2e/temporal_filter_study/server_lifecycle.py": "7f5a2bdebd11d0c40c49caaae26a81fd8198a51d0359269c169fa8b9cdbd13a2",
+    "validation/carla_e2e/temporal_filter_study/queue_model.py": "763532575bef3f14e42fc9cbacc89798233609bca70c1d407c3dd5f8d6a47270",
+    "validation/carla_e2e/temporal_filter_study/diagnose_misses.py": "28bfe376c5e2f4eb934713a51d781b0805af3451f8a1ab007ead8232c7558031",
+    "validation/carla_e2e/temporal_filter_study/make_cases.py": "d93ecd7839bb6c246849456a27ec31ddeecb50975c111502c23d2a34efb1995e",
+    "validation/carla_e2e/temporal_filter_study/run_batch.py": "6b54114e86fbf1c6e5b289da28b39812adb6dcebc27643606c05505992f6eb8b",
+    "validation/carla_e2e/temporal_filter_study/study.py": "b9a34ec9d94c9878be14f524d9b651b43e22311a6604c468c76f9607051e964d",
+    "validation/carla_e2e/temporal_filter_study/measured_queue.py": "3649e37f10aba9720f158845394a3fa9bfe3c29203c3c15278c3db253545a8d8",
+    "validation/carla_e2e/temporal_filter_study/analyze.py": "102192929d03d5757fcfe8a693745e122a58a199a6c77be38b8d84d17520b347",
+    "validation/carla_e2e/temporal_filter_study/verify_archive.py": "52e7bbc50f1e864175a0fc728710eac5df8e826732449fbb2e1ec3914df47462",
+    "validation/carla_e2e/temporal_filter_study/audit_labels.py": "a1614b8762d84c77324f9c384916e36566a576595f2507b5c88e29ba3685f7fb",
+    "validation/carla_e2e/temporal_filter_study/stress.py": "55374dd976451f5306d089daa327ba801138eba58d8a24f60aa3d430c6a53636",
+    "validation/carla_e2e/temporal_filter_study/capture.py": "f341edbb6a579ca576d5d83de952131965f81ff1e81e96726ea17fa7b65d17c5",
+    "validation/carla_e2e/temporal_filter_study/report.py": "3c9a312ac568e2f425ffbf3b5e1075cad535a103519f4a4ab4e6fca3c1e53e58",
+    "validation/carla_e2e/temporal_filter_study/postprocess.py": "c24a9a9a17c35ada19803ac078f258ce7e33c32303b7a3c05d2341bacf0b2f31",
+    "validation/carla_e2e/temporal_filter_study/real_vlm.py": "2e7c78c6cc19c80dc8fd52283eceff382736bf7093d710cb0155e6487645398f",
+    "validation/carla_e2e/temporal_filter_study/protocol.md": "98aebd1a3242fa3251afb16d89793da64a415bbf140fad3eaade549c91f49f20",
+    "validation/carla_e2e/temporal_filter_study/execution_policy.json": "8675f4aa1991789c869bfbdc34fdf26d0ce7101cb0648fc8048914581eafabf2"
+  },
+  "final_scope": {
+    "recordings": 40,
+    "frames": 72000,
+    "development": 16,
+    "held_out": 24,
+    "actual_vlm_allowed": false
+  }
+}

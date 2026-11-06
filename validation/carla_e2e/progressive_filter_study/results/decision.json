@@ -1,0 +1,7 @@
+{
+  "temporal_n3_passes_prespecified_checks": false,
+  "selected_temporal_validated": false,
+  "development_selected": "n1_dedup",
+  "actual_vlm_called": false,
+  "interpretation": "새 개발 자료의 선택과 평가 재현성을 함께 보았을 때, 연속 확인을 최종 구조에 유지할 사전 조건을 충족한 선택을 확인하지 못했다. 연속 확인은 순간 오판을 줄이려 추가해 검증했으나 사전 유지 조건을 입증하지 못해 최종 구성에서 제외한 시행착오로 분류한다. 관측된 요청 절감·목표 손실·지연은 위 표에 각각 제시했다. 기준 미충족은 효과가 전혀 없다는 증명이 아니며, 모든 환경에서 무의미하다는 뜻도 아니다. 평가 결과에서 다른 N을 사후 선택해 개발 선택인 것처럼 서술하지 않았다."
+}

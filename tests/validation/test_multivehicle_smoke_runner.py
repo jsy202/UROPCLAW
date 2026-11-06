@@ -252,3 +252,9 @@ def test_stale_recovery_requires_explicit_cli_authorization():
 
     with pytest.raises(RuntimeError, match="--cleanup-stale-validation-actors"):
         runner.cleanup_stale_validation_actors([Actor()], enabled=False)
+
+
+def test_historical_smoke_rejects_removed_stage_before_resources():
+    runner=load_runner()
+    with pytest.raises(RuntimeError,match='e8372ce'):
+        runner.run_smoke(None)

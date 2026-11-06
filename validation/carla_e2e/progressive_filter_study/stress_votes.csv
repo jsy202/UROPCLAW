@@ -1,0 +1,21 @@
+sequence,rule,colors,outputs,blue_confirmations
+target_with_unknown,current,"blue,unknown,unknown","[null, null, ""blue""]",1
+target_with_unknown,full,"blue,unknown,unknown","[null, null, null]",0
+target_with_unknown,unanimous,"blue,unknown,unknown","[null, null, null]",0
+target_with_unknown,sliding,"blue,unknown,unknown","[null, null, null]",0
+nontarget_single_error,current,"blue,red,red","[null, null, ""red""]",0
+nontarget_single_error,full,"blue,red,red","[null, null, ""red""]",0
+nontarget_single_error,unanimous,"blue,red,red","[null, null, null]",0
+nontarget_single_error,sliding,"blue,red,red","[null, null, ""red""]",0
+nontarget_error_plus_unknown,current,"blue,unknown,unknown","[null, null, ""blue""]",1
+nontarget_error_plus_unknown,full,"blue,unknown,unknown","[null, null, null]",0
+nontarget_error_plus_unknown,unanimous,"blue,unknown,unknown","[null, null, null]",0
+nontarget_error_plus_unknown,sliding,"blue,unknown,unknown","[null, null, null]",0
+unstable_then_target,current,"red,red,blue,blue,blue","[null, null, ""red"", null, null]",0
+unstable_then_target,full,"red,red,blue,blue,blue","[null, null, ""red"", null, null]",0
+unstable_then_target,unanimous,"red,red,blue,blue,blue","[null, null, null, null, null]",0
+unstable_then_target,sliding,"red,red,blue,blue,blue","[null, null, ""red"", ""blue"", ""blue""]",2
+target_one_error,current,"blue,red,blue","[null, null, ""blue""]",1
+target_one_error,full,"blue,red,blue","[null, null, ""blue""]",1
+target_one_error,unanimous,"blue,red,blue","[null, null, null]",0
+target_one_error,sliding,"blue,red,blue","[null, null, ""blue""]",1

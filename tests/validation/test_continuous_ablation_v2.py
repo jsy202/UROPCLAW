@@ -1,4 +1,4 @@
-"""v2 shadow branches must reproduce the FIXED production candidate/VLM decisions."""
+"""Historical v2 branches; its no-temporal variant matches current production."""
 
 import importlib.util
 import time
@@ -56,7 +56,7 @@ class CachedDetector:
         return self.by_id[id(frame)]
 
 
-def test_full_v2_branch_matches_fixed_production_pipeline(make_pipeline):
+def test_no_temporal_v2_branch_matches_current_production_pipeline(make_pipeline):
     frames = stream()
     pipeline = make_pipeline(detector=CachedDetector(frames))
     timestamps = []
@@ -71,7 +71,7 @@ def test_full_v2_branch_matches_fixed_production_pipeline(make_pipeline):
     production = pipeline.metrics_summary()
 
     branches = load_branches()
-    full = branches.ShadowBranch("full", IoUTracker, TemporalConfirm, Deduplicator)
+    full = branches.ShadowBranch("no_temporal", IoUTracker, TemporalConfirm, Deduplicator, use_temporal=False)
     for (frame, detections), timestamp in zip(frames, timestamps):
         full.process(detections, [classify_color(frame, d.bbox) for d in detections], timestamp)
 

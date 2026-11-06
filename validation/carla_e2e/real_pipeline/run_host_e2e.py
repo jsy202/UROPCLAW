@@ -408,6 +408,10 @@ def run_repetition(context, scenario, repetition, fault=None):
         "target_body_type": None, "discord_channel_id": "fake-only",
     }), encoding="utf-8")
 
+    if not hasattr(pipeline_mod, "TemporalConfirm"):
+        raise RuntimeError("Historical temporal-stage runner requires the pre-removal code at e8372ce; "
+                           "use temporal_filter_study for the current no-temporal comparison.")
+
     originals = (pipeline_mod.IoUTracker, pipeline_mod.TemporalConfirm, pipeline_mod.classify_color,
                  pipeline_mod.WORKSPACE_BASE, pipeline_mod._METRICS_PATH, mission_mod._MISSION_PATH)
     CountingTracker, CountingTemporal, counting_classifier = _make_counting_classes(pipeline_mod, observation)
@@ -762,6 +766,12 @@ def parse_args(argv=None):
 
 def main(argv=None):
     args = parse_args(argv)
+    if str(HARNESS_DIR) not in sys.path:
+        sys.path.insert(0, str(HARNESS_DIR))
+    from core import pipeline as current_pipeline
+    if not hasattr(current_pipeline, "TemporalConfirm"):
+        raise RuntimeError("Historical temporal-stage runner requires code at e8372ce; "
+                           "use temporal_filter_study/compare_no_temporal.py for current comparisons.")
     log_path = HERE / "evidence" / ("frame_metrics_run.log" if args.frame_metrics_only else "run.log")
     log_path.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(

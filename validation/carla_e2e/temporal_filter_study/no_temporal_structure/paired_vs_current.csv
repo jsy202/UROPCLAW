@@ -1,0 +1,7 @@
+split,config,baseline,recall_diff_ci_low,recall_diff_ci_high,requests_per_min_diff_ci_low,requests_per_min_diff_ci_high,exploratory_noninferiority_2pp,bootstrap_recordings,resamples
+test,neither,hsv_dedup,0.040000000000000036,0.15833333333333333,533.9163194444445,841.9149305555554,True,24,2000
+test,dedup_only,hsv_dedup,-0.11304347826086947,0.020418792517006765,8.694097222222222,12.472569444444444,False,24,2000
+test,hsv_only,hsv_dedup,0.0,0.026321611551001444,21.24965277777778,32.1125,True,24,2000
+test,hsv_dedup,hsv_dedup,0.0,0.0,0.0,0.0,True,24,2000
+test,early_hsv,hsv_dedup,0.0,0.0,0.0,0.06944444444444442,True,24,2000
+test,late_hsv,hsv_dedup,0.0,0.0,-0.04166666666666674,0.0,True,24,2000

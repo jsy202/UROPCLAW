@@ -1,3 +1,4 @@
+"""Historical temporal rules retained for comparative validation, not production."""
 from __future__ import annotations
 
 from collections import defaultdict

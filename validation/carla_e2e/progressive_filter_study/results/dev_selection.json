@@ -1,0 +1,5 @@
+{
+  "selected": "n1_dedup",
+  "based_on": "12development6000frame recordings only",
+  "criteria": "loss<=2pp vsN1;confirmationp95<=.5s;min non-target+unassociated thenrequests thenN"
+}
