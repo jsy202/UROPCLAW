@@ -215,7 +215,7 @@ CARLA 실험에 앞서, 합성 입력 replay와 Fake detector / VLM / Alert로 p
 
 ```bash
 pip install -r requirements-test.txt
-python3 -m pytest          # 152 passed, 1 skipped on validation host (CARLA·GPU·VLM·Discord 불필요)
+python3 -m pytest          # 153 passed, 1 skipped on validation host (CARLA·GPU·VLM·Discord 불필요)
 ```
 
 skip된 1건은 수정 전 production logic을 재현하던 v1 shadow branch의 과거 equivalence test로, 사유를 테스트 안에 명시했습니다. CARLA host 실행 방법은 [validation/carla_e2e/README.md](validation/carla_e2e/README.md)에 있습니다.

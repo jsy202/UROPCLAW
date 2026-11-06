@@ -30,3 +30,19 @@ def test_all_structure_variants_emit_first_observation_without_temporal(monkeypa
         b=m.study.Branch(config)
         events=b.process([dict(bbox=[10,10,70,50],class_id=2,confidence=.9,color='blue')],0.)
         assert any(e['kind']=='request' for e in events)
+
+
+def test_configuration_import_does_not_require_plotting(monkeypatch):
+    import builtins
+    original_import=builtins.__import__
+    monkeypatch.delitem(sys.modules,'analyze',raising=False)
+    def without_plotting(name,*args,**kwargs):
+        if name=='matplotlib' or name.startswith('matplotlib.'):
+            raise ModuleNotFoundError('plotting is unavailable in the minimal test environment')
+        return original_import(name,*args,**kwargs)
+    monkeypatch.setattr(builtins,'__import__',without_plotting)
+    m=load(monkeypatch)
+    assert len(m.configurations())==6
+    branch=m.study.Branch(m.configurations()[0])
+    assert any(e['kind']=='request' for e in branch.process(
+        [dict(bbox=[10,10,70,50],class_id=2,confidence=.9,color='blue')],0.))

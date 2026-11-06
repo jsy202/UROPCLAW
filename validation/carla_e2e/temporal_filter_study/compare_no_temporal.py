@@ -3,7 +3,6 @@ import json
 import os
 from pathlib import Path
 import study
-from analyze import aggregate,paired_ci
 HERE=Path(__file__).resolve().parent
 
 
@@ -33,6 +32,7 @@ def plots(output,rows):
 
 
 def main():
+    from analyze import aggregate,paired_ci
     policy=json.loads((HERE/'execution_policy.json').read_text())
     assert policy['allow_real_vlm'] is False
     output=HERE/'no_temporal_structure';output.mkdir(exist_ok=True)
