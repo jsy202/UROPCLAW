@@ -1,0 +1,12 @@
+kind,run,episode,actor,frame,time_s,image,n1_reached,n3_reached,guard_reached,n1_delay_s,n3_delay_s
+N1_reached_N3_missed,Town10HD_Opt_clear_v30_s201,0,110,0,0.0,N1_reached_N3_missed_Town10HD_Opt_clear_v30_s201_ep0.jpg,1,0,0,0.1,
+N1_reached_N3_missed,Town10HD_Opt_clear_v30_s201,82,102,5146,514.600008,N1_reached_N3_missed_Town10HD_Opt_clear_v30_s201_ep82.jpg,1,0,0,0.0,
+N1_reached_N3_missed,Town10HD_Opt_clear_v30_s202,76,123,4874,487.400007,N1_reached_N3_missed_Town10HD_Opt_clear_v30_s202_ep76.jpg,1,0,0,0.0,
+N3_reached_N1_missed,Town10HD_Opt_clear_v30_s202,36,123,2141,214.100003,N3_reached_N1_missed_Town10HD_Opt_clear_v30_s202_ep36.jpg,0,1,1,,0.29999999999998295
+N3_reached_N1_missed,Town10HD_Opt_clear_v30_s202,77,139,4979,497.900007,N3_reached_N1_missed_Town10HD_Opt_clear_v30_s202_ep77.jpg,0,1,1,,0.0999999999999659
+N3_reached_N1_missed,Town10HD_Opt_clear_v70_s201,76,321,2250,225.000003,N3_reached_N1_missed_Town10HD_Opt_clear_v70_s201_ep76.jpg,0,1,1,,0.20000000000001705
+guard_recovered,Town10HD_Opt_low_sun_v70_s203,141,1026,4511,451.100007,guard_recovered_Town10HD_Opt_low_sun_v70_s203_ep141.jpg,1,0,1,0.0,
+guard_recovered,Town10HD_Opt_rain_v70_s203,134,1536,4510,451.000007,guard_recovered_Town10HD_Opt_rain_v70_s203_ep134.jpg,0,0,1,,
+correct_target_request,Town10HD_Opt_clear_v30_s201,,102,459,45.900001,correct_target_request_Town10HD_Opt_clear_v30_s201_f459.jpg,,,,,
+correct_target_request,Town10HD_Opt_clear_v30_s201,,94,585,58.500001,correct_target_request_Town10HD_Opt_clear_v30_s201_f585.jpg,,,,,
+correct_target_request,Town10HD_Opt_clear_v30_s201,,94,1143,114.300002,correct_target_request_Town10HD_Opt_clear_v30_s201_f1143.jpg,,,,,

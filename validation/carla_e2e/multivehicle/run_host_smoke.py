@@ -473,6 +473,12 @@ def _drain_pipeline(pipeline, accepted_count, timeout):
 
 
 def run_smoke(args):
+    if str(HARNESS_DIR) not in sys.path:
+        sys.path.insert(0, str(HARNESS_DIR))
+    from core import pipeline as current_pipeline
+    if not hasattr(current_pipeline, "TemporalConfirm"):
+        raise RuntimeError("Historical temporal-stage runner requires code at e8372ce; "
+                           "use temporal_filter_study/compare_no_temporal.py for current comparisons.")
     evidence_dir = Path(args.evidence_dir)
     logger = _setup_logging(evidence_dir)
     partial = {"phase": "initializing", "status": "RUNNING"}

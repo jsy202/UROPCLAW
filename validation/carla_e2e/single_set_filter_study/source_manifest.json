@@ -1,0 +1,15 @@
+{
+  "scope": "single-set supplementary replay; not adopted as final policy",
+  "source_sha256": {
+    "validation/carla_e2e/single_set_filter_study/run.py": "7f57ba15c69f45382c1d1f6df3151efc0bfa3ee2e0f7dc12a277edc4ab0bb405",
+    "validation/carla_e2e/single_set_filter_study/policies.py": "963f5ce691fa15c6b14c142a322b627bdc3277279e9b858b83326d41f94ac6de",
+    "validation/carla_e2e/temporal_filter_study/study.py": "45902becc74bb2f92b37cc2cab160860c9384535b3619805f8e5a923ba123073",
+    "validation/carla_e2e/progressive_filter_study/analyze_progressive.py": "cf9d52e748c5e000985ff87d3950b81c03580d9575893ce77695917d9d4d113a",
+    "harness/perception/deduplicator.py": "1e3ce23933fb3894088c12bc33b7fe283855687fec260cff0388d9fb8baafb57",
+    "harness/perception/color_filter.py": "b181b714d69384303703b86c841f1aa1cedc5d9200fe3732f702523982bc5f8f",
+    "harness/perception/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "harness/perception/iou_tracker.py": "8bfe073a1c245df2bb90712fedd49e35a35d796b41751c5e043bf43bcf1639f9",
+    "harness/perception/yolo_detector.py": "d204a3534d1bf29803ddeb599f2fcfdbba9b16ed6a4a4761cce8c892f94b9edc",
+    "harness/perception/temporal_confirm.py": "3c202ba661474b0c1eaef8f97b113d8fd0aa83f87995e7d39cc17607842fb2bf"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "selected": "n2_dedup",
+  "rule": "recall loss<=2pp vsN1; confirm p95<=.5s; min erroneous/unassociated triggers then total triggers then N",
+  "based_on": "16 development recordings only; no test results read",
+  "data_sha256": "8df491f6b73871b15c0d000dd9b0043db7e89e1df8fb142777a0d98899de0a1f"
+}

@@ -22,7 +22,6 @@ import numpy as np
 from perception.yolo_detector import detect, Detection
 from perception.color_filter import classify_color
 from perception.iou_tracker import IoUTracker
-from perception.temporal_confirm import TemporalConfirm
 from perception.deduplicator import Deduplicator
 from core.mission import is_active, get_target_color, read_mission
 from policy.alert_policy import AlertPolicy
@@ -123,18 +122,12 @@ class YoloWorker(threading.Thread):
         self._baseline_mode = baseline_mode
         self._detect = detector or detect  # default: YOLOv8 (perception.yolo_detector.detect)
         self._trackers: dict[str, IoUTracker] = {}
-        self._confirmer: dict[str, TemporalConfirm] = {}
         self._frame_count: int = 0
 
     def _get_tracker(self, camera_id: str) -> IoUTracker:
         if camera_id not in self._trackers:
             self._trackers[camera_id] = IoUTracker()
         return self._trackers[camera_id]
-
-    def _get_confirmer(self, camera_id: str) -> TemporalConfirm:
-        if camera_id not in self._confirmer:
-            self._confirmer[camera_id] = TemporalConfirm()
-        return self._confirmer[camera_id]
 
     def run(self) -> None:
         log.info(f"YoloWorker started (baseline_mode={self._baseline_mode})")
@@ -241,23 +234,17 @@ class YoloWorker(threading.Thread):
                 tracker = self._get_tracker(camera_id)
                 tracks = tracker.update(detections, colors)
 
-                confirmer = self._get_confirmer(camera_id)
                 use_dedup = dedup_enabled(mode)
 
                 for tid, track in tracks.items():
-                    # Only a track matched to a detection in this frame may add
-                    # temporal evidence; an unmatched track keeps its old bbox,
-                    # which no longer shows the vehicle.
+                    # Unmatched tracks retain old boxes and cannot create current candidates.
                     if track.disappeared != 0:
                         continue
                     color = track.color_history[-1] if track.color_history else "unknown"
-                    result = confirmer.update(tid, color, timestamp)
-                    if result is None:
+                    if color == "unknown":
                         continue
-
-                    confirmed_color = result["color"]
                     target = get_target_color()
-                    if target and confirmed_color != target:
+                    if target and color != target:
                         continue
 
                     # Baseline C: OpenClaw 없이 종료 (candidate_queue 넣지 않음)
@@ -277,8 +264,8 @@ class YoloWorker(threading.Thread):
                             "camera_id": camera_id,
                             "agent_id": agent_id,
                             "track_id": tid,
-                            "color": confirmed_color,
-                            "color_score": _dominant_ratio(track.color_history, confirmed_color),
+                            "color": color,
+                            "color_score": _dominant_ratio(track.color_history, color),
                             "bbox": track.bbox,
                             "frame": frame,
                             "timestamp": timestamp,

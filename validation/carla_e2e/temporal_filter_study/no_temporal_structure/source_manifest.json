@@ -1,0 +1,13 @@
+{
+  "comparison": "no-temporal presence and order",
+  "parent_experiment_commit": "789bec9",
+  "recordings": 40,
+  "frames": 72000,
+  "actual_vlm_allowed": false,
+  "configurations": 6,
+  "source_sha256": {
+    "harness/core/pipeline.py": "13dac4faabc2994f21c458b1123faa7a867308ff9dc97216ba7933a93c3e4761",
+    "validation/carla_e2e/temporal_filter_study/compare_no_temporal.py": "6b914815285e207adac464f4ed72c9e63aa3f369813f21242fac81680f18764e",
+    "validation/carla_e2e/temporal_filter_study/execution_policy.json": "8675f4aa1991789c869bfbdc34fdf26d0ce7101cb0648fc8048914581eafabf2"
+  }
+}

@@ -122,8 +122,8 @@ def test_invalid_frame_does_not_stop_pipeline(make_pipeline):
     assert p.metrics_summary()["frames_received"] == 8
 
 
-def test_tracking_loss_resets_temporal_confirmation(make_pipeline):
-    # Two frames, a gap > 1 s (TemporalConfirm _MAX_GAP_SECONDS), two frames: never 3 consecutive.
+def test_gap_does_not_delay_new_observations_or_bypass_dedup(make_pipeline):
+    # A gap no longer resets a temporal gate; repeated observations still share the cooldown.
     vlm = SuccessVLM()
     p = make_pipeline(vlm=vlm)
     frames = list(SyntheticSceneSource(4, colour="blue"))
@@ -134,7 +134,8 @@ def test_tracking_loss_resets_temporal_confirmation(make_pipeline):
         p.push_frame(rf.camera_id, rf.agent_id, rf.frame, time.time()); time.sleep(0.05)
     assert wait_until(lambda: p.metrics_summary()["frames_processed"] == 4)
     time.sleep(0.3)
-    assert vlm.calls == 0
+    assert vlm.calls == 1
+    assert p.metrics_summary()["candidates_raised"] == 4
 
 
 def test_stale_frames_are_dropped(make_pipeline):

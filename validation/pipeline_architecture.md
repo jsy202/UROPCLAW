@@ -15,13 +15,12 @@
    ├ detector(frame)            default: YOLOv8s (conf 0.40, iou 0.45; car/motorcycle/bus/truck)
    ├ classify_color (HSV, central region, ≥15 % pixels)
    ├ IoUTracker per camera (IoU 0.30, reconnect 2 s / 80 px)
-   ├ TemporalConfirm (3 frames, gap ≤ 1 s, ≥ 60 % majority, unknown-only rejected)
-   └ target-colour filter
+   └ current target-colour gate (matched tracks only; unknown rejected; no temporal wait)
         ▼
  candidate_queue (maxsize 20) ── full → candidates_dropped  [validation: was frames_dropped]
         ▼
  Thread OpenClawWorker
-   ├ Deduplicator.should_verify(agent_id)  30 s per agent (proposed only)  [validation: A/B were also deduplicated]
+   ├ Deduplicator.should_verify_target(camera, track, colour, bbox) 30 s per target (proposed only)
    ├ crop → workspaces/<agent>/state/crops/vreq_*.jpg
    └ VLM: `claude --print --model claude-haiku-4-5…` (timeout 25 s) → JSON
         └ any failure → FAIL OPEN: confirmed=True, confidence "n/a"   [validation: now counted]
@@ -55,6 +54,9 @@
 |---|---|
 | VLM 검증은 "body_type 지정 시" | 모든 confirmed candidate를 검증한다(`test_vlm_is_called_without_body_type_in_mission`으로 확인) |
 | VLM 타임아웃 30초 | 25초 |
-| "Discord 알림 120초 쿨다운" | `Deduplicator.should_alert`(120 s)를 호출하는 곳이 없다. 실제 제한은 agent당 30 s VLM 검증(should_verify)이다 |
-| "동일 트랙 30초" | dedup key가 `agent_id`다(commit 7af6246) |
+| "Discord 알림 120초 쿨다운" | `Deduplicator.should_alert`는 호출하지 않는다. 실제 제한은 target별30초 VLM 검증이다 |
+| 과거 agent별30초 제한 | 현재는 camera/track별target과 fragment 연속성으로 중복을 억제한다 |
 | 5스레드 | world가 없으면 4스레드(validation 변경) |
+
+## 시간적 확인 제외 결정
+순간 색상 오판을 줄이려3개 관측 다수결을 도입했지만,실제 비교에서 짧은 관측의 누락과 지연 손실이 커 현재실행경로에서제외했다. 당시수치와TemporalConfirm모듈은과거실험재현용으로보존했다. [시행착오·근거](carla_e2e/temporal_filter_study/RESEARCH_LOG.ko.md).

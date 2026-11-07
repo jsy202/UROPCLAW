@@ -1,0 +1,17 @@
+{
+  "map": "Town10HD_Opt",
+  "transform": {
+    "location": {
+      "x": 30.925752639770508,
+      "y": 123.02448272705078,
+      "z": 8.0
+    },
+    "rotation": {
+      "pitch": -23.96249008178711,
+      "yaw": 90.32044982910156,
+      "roll": 0.0
+    }
+  },
+  "calibration": "pilot geometry only; frozen before evaluation",
+  "scores": []
+}

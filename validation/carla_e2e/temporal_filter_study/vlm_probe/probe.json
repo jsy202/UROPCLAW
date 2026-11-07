@@ -1,0 +1,6 @@
+{
+  "returncode": 0,
+  "stdout": "```json\n{\n  \"visible_vehicle\": true,\n  \"color\": \"blue\",\n  \"confirmed\": true,\n  \"confidence\": \"high\"\n}\n```\n",
+  "stderr": "",
+  "wall_s": 10.143877584999927
+}

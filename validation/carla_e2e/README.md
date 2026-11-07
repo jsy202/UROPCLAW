@@ -51,3 +51,6 @@ python validation/carla_e2e/continuous_ablation_v2/aggregate_v2.py              
 - [Experiment B v1](continuous_ablation/limitations.md)
 - [Experiment A](multivehicle/limitations.md)
 - [Single-vehicle](real_pipeline/limitations.md)
+
+## Historical temporal-stage runners
+The old real_pipeline and multivehicle live host runners instrumented TemporalConfirm. After its production removal, they explicitly reject live execution before simulator setup; reproduce those historical runs using commite8372ce. Existing aggregate-only data processing remains available. The primary controlled comparison is [progressive_filter_study](progressive_filter_study/README.md):30fresh10-minute recordings at10Hz,6000frames each,actualVLM disabled. The earlier3-minute exploration remains in temporal_filter_study.

@@ -41,3 +41,11 @@ def test_latency_summary_does_not_invent_values_for_empty_sets():
     assert summary["p50_ms"] == 25.0
     assert summary["over_1000"] == 1
     assert summary["compliance_rate"] == 0.75
+
+
+def test_historical_benchmark_rejects_removed_stage_before_resources(monkeypatch):
+    import pytest
+    module=load_module()
+    monkeypatch.setattr(module,'parse_args',lambda argv:None)
+    with pytest.raises(RuntimeError,match='e8372ce'):
+        module.main([])

@@ -1,0 +1,6 @@
+{
+  "allow_real_vlm": false,
+  "reason": "User explicitly prohibited actual VLM calls during ongoing work",
+  "max_recordings": 30,
+  "allowed_cells": "Town10HD_Opt all3weather x2densities x5seeds; current ten-minute collection limited to30"
+}

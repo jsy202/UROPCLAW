@@ -1,0 +1,5 @@
+config,recordings,frames_per_recording,total_requests,mean_requests,reached_detected_target_actors,detected_target_actors
+factor_000,30,6000,260443,8681.433333333332,180,180
+factor_100,30,6000,11535,384.5,179,180
+factor_101,30,6000,667,22.233333333333334,177,180
+factor_111,30,6000,561,18.7,173,180

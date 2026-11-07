@@ -1,4 +1,4 @@
-"""Regression tests: stale-track temporal evidence and per-target VLM dedup."""
+"""Regression tests: stale-track candidate suppression and per-target VLM dedup."""
 
 import time
 
@@ -124,19 +124,14 @@ class CropCheckingVLM:
         return subprocess.CompletedProcess(cmd, 0, stdout=json.dumps(payload).encode(), stderr=b"")
 
 
-def test_unmatched_track_never_gains_temporal_evidence(make_pipeline):
+def test_unmatched_track_never_creates_more_candidates(make_pipeline):
     detector, vlm = ScriptedDetector(), CropCheckingVLM()
     pipeline = make_pipeline(detector=detector, vlm=vlm)
     red = [600, 100, 700, 160]
-    # Blue matched for 2 frames (below the 3-frame threshold), then gone for 6 frames while
-    # the red car keeps the tracker updating (blue track exists but is unmatched).
     feed(pipeline, detector, [([100, 300, 200, 360], red)] * 2 + [(None, red)] * 6)
-    m = pipeline.metrics_summary()
-    assert m["candidates_raised"] == 0
-    assert vlm.calls == 0
-    confirmer = pipeline._threads[0]._get_confirmer("cam")
-    # The blue track (id 0) keeps exactly its 2 matched observations; no stale votes.
-    assert confirmer.pending[0].count == 2
+    assert pipeline.metrics_summary()["candidates_raised"] == 2
+    assert vlm.calls == 1
+    assert all(ratio > 0.25 for ratio in vlm.crop_blue_ratio)
 
 
 def test_matched_track_still_confirms_and_crop_shows_current_vehicle(make_pipeline):
@@ -146,7 +141,7 @@ def test_matched_track_still_confirms_and_crop_shows_current_vehicle(make_pipeli
     plan = [([100 + 8 * i, 300, 200 + 8 * i, 360], red) for i in range(3)] + [(None, red)] * 6
     feed(pipeline, detector, plan)
     m = pipeline.metrics_summary()
-    assert m["candidates_raised"] == 1          # confirmed on the 3rd matched frame only
+    assert m["candidates_raised"] == 3          # each current target observation is a candidate
     assert vlm.calls == 1
     # Production pads 35% per side: a 100x60 car fills 6000/(170*102)=0.35 of the crop;
     # a stale crop of empty road would be ~0.

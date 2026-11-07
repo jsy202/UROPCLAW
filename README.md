@@ -1,17 +1,19 @@
 # UROPCLAW
 
 CARLA 차량 감시 영상에서 지정된 색상의 차량을 찾아 알리는 AI perception pipeline입니다.
-YOLO → HSV → Tracking → Temporal Confirmation → Deduplication → VLM 순서로 후보를 단계적으로 줄입니다.
+YOLO → HSV → Tracking → 현재 목표 색 확인 → Deduplication → VLM 순서로 후보를 줄입니다. 시간적 확인은 비교 검증 후 제외했습니다.
 
 ## 1. Project Overview
 
 **문제:** 감시 카메라의 모든 frame을 VLM(vision-language model)에 보내 "목표 차량인가"를 묻는 방식은 구현은 단순하지만, frame 수만큼 VLM 요청이 발생해 처리 부하와 비용이 커집니다.
 
-**접근:** 빠르고 저렴한 단계(차량 검출, 색상 필터, 추적, 시간적 확인, 중복 억제)가 먼저 후보를 선별하고, 남은 후보만 VLM이 검증하도록 단계별 후보 선별 구조를 설계했습니다. 각 단계는 서로 다른 종류의 불필요한 요청을 걸러냅니다.
+**접근:** 빠르고 저렴한 단계(차량 검출, 색상 필터, 추적, 중복 억제)가 먼저 후보를 선별하고, 남은 후보만 VLM이 검증하도록 단계별 후보 선별 구조를 설계했습니다. 각 단계는 서로 다른 종류의 불필요한 요청을 걸러냅니다.
 
 이 저장소에는 연구 당시 구현과, 연구 종료 후 실제 CARLA 환경에서 수행한 **post-project validation**이 함께 있습니다. 두 결과는 아래에서 분리해 설명합니다.
 
-## Key Results (post-project validation)
+## Key Results (historical post-project validation)
+
+아래 Full/Temporal 수치는 시간적 확인을 포함하던 과거 구현의 결과입니다. 이후 추가 비교에서 짧은 검출 출현의 누락과 지연 손실을 확인해 현재 실행 경로에서 시간적 확인을 제거했습니다. 도입→실제 검증→제외의 시행착오 기록은 [단일 6,000프레임 후속 검증](validation/carla_e2e/single_set_filter_study/REPORT.ko.md)에 있습니다.
 
 10분 연속 CARLA 감시, 6,000 frames/run, 독립 실행 3회. 네 가지 구성이 동일한 frame과 동일한 YOLO 출력을 공유합니다.
 
@@ -31,9 +33,9 @@ VLM 요청 감소와 target coverage를 함께 검증했습니다. 여기서 "VL
 ```mermaid
 flowchart LR
     A[CARLA RGB camera<br/>10 Hz] --> B[YOLOv8s<br/>vehicle detection]
-    B --> C[HSV<br/>target-colour filter]
+    B --> C[HSV<br/>colour labelling]
     C --> D[IoU tracking]
-    D --> E[Temporal confirmation<br/>matched tracks only]
+    D --> E[Current target-colour gate<br/>matched detections only]
     E --> F[Target-level<br/>deduplication]
     F --> G[VLM verification<br/>candidate]
     G --> H[AlertPolicy<br/>→ alert]
@@ -42,10 +44,10 @@ flowchart LR
 | 단계 | 역할 |
 |---|---|
 | YOLOv8s | frame에서 차량(car, bus, truck, motorcycle) bounding box를 검출합니다. |
-| HSV colour filter | box 중앙 영역의 HSV 분포로 색을 분류하고, 미션 대상 색(예: blue)과 다른 차량을 후보에서 제외합니다. |
+| HSV colour labelling | 모든 검출 box의 중앙 HSV 분포로 색상 라벨을 붙입니다. 목표 색이 아닌 차량의 제외는 추적 뒤 current-colour gate에서 수행합니다. |
 | IoU tracking | frame 간 box를 IoU로 연결해 track ID를 유지합니다. |
-| Temporal confirmation | 이번 frame에서 실제로 매칭된 track의 3-frame 다수결 색상이 대상 색일 때만 후보로 승격해, 순간적인 오검출을 거릅니다. |
-| Deduplication | target(track) 단위 30초 cooldown과 track 분할 연속성 판단으로, 같은 차량의 반복 VLM 요청을 억제합니다. 다른 차량은 막지 않습니다. |
+| Current target-colour gate | 이번 frame에서 실제로 매칭된 차량의 현재 HSV 색이 목표 색이면 즉시 후보로 보냅니다. unknown과 미매칭 track은 제외합니다. |
+| Deduplication | target(track) 단위 30초 cooldown과 track 분할 연속성 판단으로, 같은 차량의 반복 VLM 요청을 억제합니다. 서로 다른 대상을 구분하도록 설계했으나, 잘못된 track 재연결·fragment 병합으로 다른 차량을 억제할 수 있습니다. |
 | VLM | 남은 후보 crop을 검증합니다. production에서는 `claude --print` CLI를 호출하며, 실패 시 fail-open으로 동작합니다. |
 | AlertPolicy | 미션 조건과 VLM 결과를 확인한 뒤 detection event를 기록하고 경보를 보냅니다. |
 
@@ -197,11 +199,37 @@ Stale track 수정 전/후: [수정 전 빈 도로 crop](validation/carla_e2e/co
 CARLA 실험에 앞서, 합성 입력 replay와 Fake detector / VLM / Alert로 pipeline의 데이터 전달과 장애 처리를 검증했습니다. 이 과정에서 지표 결함 6건(U01–U06)을 테스트로 재현하고 수정했습니다. 예를 들어 VLM timeout과 오류가 지표에 나타나지 않던 문제, 평가 baseline에 dedup이 잘못 적용되던 문제입니다. 이 결과는 합성 조건의 결과이며 실제 운영 수치가 아닙니다.
 [test report](validation/test_report.md) · [benchmark](validation/benchmark.md) · [limitations](validation/limitations.md)
 
+## Single-set filter validation
+
+최신 평가 기준은 **한 녹화6,000프레임 안에 목표 차량 각각이 최소 한 번 최종 후보에 포함되는가**입니다. 목표 차량4대를 모두 포함하면서 YOLO 후보8,167→HSV317→대상별 중복 억제19회로 줄였습니다(99.77% 감소). 같은 차량의 재등장 누락과 차량 자체의 미검출은 구분합니다.
+
+N3는 차량4/4로 같고 후보를19→18회로1회 더 줄였지만 확인 지연p95가0.225→0.435초로 늘었습니다. N3 제외는 추가 이득 대비 지연·복잡도를 고려한 선택입니다. 후보 수만 최소화하면 N7은12회지만 지연p95가3.55초이므로19회가 모든 구성에서 절대 최소라고 주장하지 않습니다. 시간적 확인 없는 배치 비교에서는 기존 배치와 late-HSV 배치가19회로 동률입니다.
+
+[최종 결과·자소서 정리](validation/carla_e2e/single_set_filter_study/USER_SUMMARY.ko.md). [왜30세트였는지·환경별 차이·전체 평균](validation/carla_e2e/single_set_filter_study/EXPERIMENT_CONTEXT.ko.md). 전체30세트의 평균은22.23회이며 검출 목표 차량177/180이 최종 후보에 포함됐으므로 전체 무손실 결과는 아닙니다. 실험용26회 수정안은 이번 차량 단위 목적에 맞춰 채택하지 않았고 운영 기본 경로도 바꾸지 않았습니다. 한 세트 결과와30세트 평균은 구분해 제시합니다.
+
+### 자소서용 요약
+
+> VLM 기반 차량 탐지 시스템에서 VLM에 전달할 프레임을 줄이기 위해 YOLO를 앞단에 배치하고, 색상 선별·중복 억제·연속 프레임 확인을 필터 후보로 검토했습니다. 환경과 차량 조건을 바꾼 30개 테스트 세트로 구성과 처리 순서를 비교했습니다. 연속 프레임 확인은 추가 절감 효과에 비해 확인 지연 p95가 약 3배로 늘고 목표 차량 누락이 증가해 제외했습니다. 배치 대안 중 목표 차량 포함과 전달량의 균형이 가장 좋았던 ‘YOLO → 색상 정보를 활용한 추적 → 목표 색 선별 → 중복 억제 → VLM’ 순서를 유지했으며, 6,000프레임당 차량 30대 조건에서는 평균 17.8프레임, 70대 조건에서는 평균 26.7프레임을 VLM 검증 후보로 선별했습니다.
+
+## Earlier thirty-recording comparison
+
+아래는 한 세트·추가 누락0 요구로 바뀌기 전의30개 전체 비교 기록입니다. 최신 단일6,000프레임 결과와 섞어 해석하지 않습니다.
+
+10Hz × 시뮬레이션 10분 × 실행당 6,000장인 녹화 30개, 총 180,000장으로 28개 구성을 비교했습니다. 처음 40개 계획에서 사용자 요청으로 30번째에 수집을 끝냈습니다. 개발 12개에서 설정을 고정하고 평가 18개에 적용했으며, 실제 VLM은 호출하지 않았습니다.
+
+필터를 YOLO 후보 → HSV 추가 → 대상별 중복 억제 추가 → 연속 확인 추가·검토 순으로 비교했습니다. 평가 자료의 요청은 156,109 → 6,088 → 363 → 294회, 목표 출현 도달은 309 → 294 → 276 → 232건이었습니다. 요청 절감과 함께 발생한 도달 손실도 보고합니다.
+
+이번 운영 기준의 권장 구조는 **HSV 라벨 → 추적 → 현재 목표 색 선별 → 대상별 중복 억제**입니다. N3는 요청을 19.0% 더 줄였지만 N1 대비 목표 출현 도달률이 14.24%p 낮았고, 확인 지연 p95가 0.10초에서 0.70초로 늘었습니다. 연속 확인은 효과가 전혀 없다는 뜻이 아니라, 사전 목표 손실·지연 기준을 충족하지 못해 제외한 시행착오로 기록했습니다. N2와 배치 변경의 교환 관계도 공개하며 유일한 절대 최적을 주장하지 않습니다.
+
+[결론·구조·수치](validation/carla_e2e/progressive_filter_study/SUMMARY.ko.md) · [전체 보고서](validation/carla_e2e/progressive_filter_study/REPORT.ko.md) · [실제 문제와 해결 과정](validation/carla_e2e/progressive_filter_study/RESEARCH_LOG.ko.md) · [비교 그래프](validation/carla_e2e/progressive_filter_study/results/progressive_additions.png) · [장면 이미지](validation/carla_e2e/progressive_filter_study/results/scene_comparison.jpg)
+
+앞선 [3분·1,800장 탐색 실험](validation/carla_e2e/temporal_filter_study/README.md)은 별도 보존하며, 새 평가 자료와 섞지 않았습니다. 전체 원본은 로컬에 보관하고 코드·결과표·대표 이미지를 저장소에 포함합니다.
+
 ## Tests
 
 ```bash
 pip install -r requirements-test.txt
-python3 -m pytest          # 119 passed, 1 skipped (CARLA·GPU·VLM·Discord 불필요)
+python3 -m pytest          # 153 passed, 1 skipped on validation host (CARLA·GPU·VLM·Discord 불필요)
 ```
 
 skip된 1건은 수정 전 production logic을 재현하던 v1 shadow branch의 과거 equivalence test로, 사유를 테스트 안에 명시했습니다. CARLA host 실행 방법은 [validation/carla_e2e/README.md](validation/carla_e2e/README.md)에 있습니다.

@@ -483,6 +483,14 @@ def load_existing_runs(evidence_dir, runs_dir):
 
 def main(argv=None):
     args = parse_args(argv)
+    if not getattr(args, "aggregate_only", False):
+        harness_dir = HERE.parents[2] / "harness"
+        if str(harness_dir) not in sys.path:
+            sys.path.insert(0, str(harness_dir))
+        from core import pipeline as current_pipeline
+        if not hasattr(current_pipeline, "TemporalConfirm"):
+            raise RuntimeError("Historical temporal-stage benchmark requires code at e8372ce; "
+                               "use temporal_filter_study/compare_no_temporal.py for current comparisons.")
     evidence_dir = Path(args.evidence_dir)
     runs_dir = evidence_dir / "runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
