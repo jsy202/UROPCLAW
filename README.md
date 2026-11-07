@@ -58,6 +58,7 @@ flowchart LR
 
 - CARLA 기반 차량 감시, YOLO / HSV / Tracking / VLM pipeline, 4개 Discord agent 구조로 구현했습니다.
 - 발표: 한국자동차공학회 2026 춘계학술대회, 「멀티 AI Agent 커뮤니티 기반 차량 환경 정보 공유 및 상황 인지 시스템」
+- 정승육(SeungYook Jung): 제2저자
 - 연구 당시 코드: tag [`research-baseline`](https://github.com/jsy202/UROPCLAW/tree/research-baseline). 당시 README 원문: [docs/original_research_readme.md](docs/original_research_readme.md)
 - 연구 당시 기록된 수치(46,372 / 28,736 / 3,298 / 53)는 측정 단위와 조건을 현재 validation 기준으로 확인할 수 없습니다. 그래서 headline 성과로 쓰지 않고, 아래 validation 결과와도 비교하지 않습니다.
 
