@@ -1,0 +1,3 @@
+actor,episode,appearance,first_s,last_s,legacy_first_reason,legacy_reasons,selected,recovered,request_s,request_delay_s
+41,17,first,84.900001,90.100001,fragment_continuity,"fragment_continuity,same_target_cooldown",track_only,True,84.900001,0.0
+49,50,reappearance,268.800004,271.900004,same_target_cooldown,"fragment_continuity,same_target_cooldown",track_only,True,271.900004,3.1000000000000227

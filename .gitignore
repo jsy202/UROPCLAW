@@ -59,3 +59,7 @@ validation/carla_e2e/temporal_filter_study/no_temporal_structure/replays/
 validation/carla_e2e/progressive_filter_study/runs/
 validation/carla_e2e/progressive_filter_study/*.log
 validation/carla_e2e/progressive_filter_study/interrupted/
+
+# Single-set study reuses one fixed local capture.
+validation/carla_e2e/single_set_filter_study/replay/
+validation/carla_e2e/single_set_filter_study/*.log

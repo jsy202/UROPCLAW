@@ -13,7 +13,7 @@ YOLO → HSV → Tracking → 현재 목표 색 확인 → Deduplication → VLM
 
 ## Key Results (historical post-project validation)
 
-아래 Full/Temporal 수치는 시간적 확인을 포함하던 과거 구현의 결과입니다. 이후 추가 비교에서 짧은 검출 출현의 누락과 지연 손실을 확인해 현재 실행 경로에서 시간적 확인을 제거했습니다. 도입→실제 검증→제외의 시행착오 기록은 [6,000장 기준 최종 검증](validation/carla_e2e/progressive_filter_study/SUMMARY.ko.md)에 있습니다.
+아래 Full/Temporal 수치는 시간적 확인을 포함하던 과거 구현의 결과입니다. 이후 추가 비교에서 짧은 검출 출현의 누락과 지연 손실을 확인해 현재 실행 경로에서 시간적 확인을 제거했습니다. 도입→실제 검증→제외의 시행착오 기록은 [단일 6,000프레임 후속 검증](validation/carla_e2e/single_set_filter_study/REPORT.ko.md)에 있습니다.
 
 10분 연속 CARLA 감시, 6,000 frames/run, 독립 실행 3회. 네 가지 구성이 동일한 frame과 동일한 YOLO 출력을 공유합니다.
 
@@ -199,7 +199,17 @@ Stale track 수정 전/후: [수정 전 빈 도로 crop](validation/carla_e2e/co
 CARLA 실험에 앞서, 합성 입력 replay와 Fake detector / VLM / Alert로 pipeline의 데이터 전달과 장애 처리를 검증했습니다. 이 과정에서 지표 결함 6건(U01–U06)을 테스트로 재현하고 수정했습니다. 예를 들어 VLM timeout과 오류가 지표에 나타나지 않던 문제, 평가 baseline에 dedup이 잘못 적용되던 문제입니다. 이 결과는 합성 조건의 결과이며 실제 운영 수치가 아닙니다.
 [test report](validation/test_report.md) · [benchmark](validation/benchmark.md) · [limitations](validation/limitations.md)
 
-## Progressive filter validation
+## Single-set filter validation
+
+최신 평가 기준은 **한 녹화6,000프레임 안에 목표 차량 각각이 최소 한 번 최종 후보에 포함되는가**입니다. 목표 차량4대를 모두 포함하면서 YOLO 후보8,167→HSV317→대상별 중복 억제19회로 줄였습니다(99.77% 감소). 같은 차량의 재등장 누락과 차량 자체의 미검출은 구분합니다.
+
+N3는 차량4/4로 같고 후보를19→18회로1회 더 줄였지만 확인 지연p95가0.225→0.435초로 늘었습니다. N3 제외는 추가 이득 대비 지연·복잡도를 고려한 선택입니다. 후보 수만 최소화하면 N7은12회지만 지연p95가3.55초이므로19회가 모든 구성에서 절대 최소라고 주장하지 않습니다. 시간적 확인 없는 배치 비교에서는 기존 배치와 late-HSV 배치가19회로 동률입니다.
+
+[최종 결과·자소서 정리](validation/carla_e2e/single_set_filter_study/USER_SUMMARY.ko.md). [왜30세트였는지·환경별 차이·전체 평균](validation/carla_e2e/single_set_filter_study/EXPERIMENT_CONTEXT.ko.md). 전체30세트의 평균은22.23회이며 검출 목표 차량177/180이 최종 후보에 포함됐으므로 전체 무손실 결과는 아닙니다. 실험용26회 수정안은 이번 차량 단위 목적에 맞춰 채택하지 않았고 운영 기본 경로도 바꾸지 않았습니다. 모든 수치는 해당 한 세트의 결과입니다.
+
+## Earlier thirty-recording comparison
+
+아래는 한 세트·추가 누락0 요구로 바뀌기 전의30개 전체 비교 기록입니다. 최신 단일6,000프레임 결과와 섞어 해석하지 않습니다.
 
 10Hz × 시뮬레이션 10분 × 실행당 6,000장인 녹화 30개, 총 180,000장으로 28개 구성을 비교했습니다. 처음 40개 계획에서 사용자 요청으로 30번째에 수집을 끝냈습니다. 개발 12개에서 설정을 고정하고 평가 18개에 적용했으며, 실제 VLM은 호출하지 않았습니다.
 
